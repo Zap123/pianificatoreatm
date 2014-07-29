@@ -1,8 +1,7 @@
 //TODO:MAPPA COORDINATE
-//TODO: ANNUNCI LINEE
-//TODO: STAZIONI PARTENZA
-//TODO: STAZIONI ARRIVO
-
+//TODO: Comunicati
+//TODO:  gestire indirizzo ambiguo
+//TODO: estrarre keyword mezzi (prendi la linea)
     
 var request = require('request'),
     cheerio = require('cheerio');
@@ -13,7 +12,6 @@ var options = {
 };
 
 function ATMFetcher(partenza,comuneS, arrivo,comuneE, opzioni, callback){
-    
     this.query = {
         'lat': '',
         'lng': '',
@@ -37,7 +35,6 @@ function ATMFetcher(partenza,comuneS, arrivo,comuneE, opzioni, callback){
 
 
 ATMFetcher.prototype.getRoute = function(){
-    
     var that = this, 
         url = "http://gmmobile.atm-mi.it/wsbw/SoluzioniFreqMode";
 
@@ -61,6 +58,25 @@ ATMFetcher.prototype.printRoute = function(html){
     });
 };
 
+ATMFetcher.getInfo = function(linea){
+    var url = "http://gmmobile.atm-mi.it/wsbw/InfoTraffico",
+    query = {
+        'codLinea': linea,
+        'cmdRicercaDiretta': 'cerca'
+//        'routeType':'0',
+//        'idLine':'-1'
+    };
+
+    options.url = url;
+    request.post(options, function(err, resp, body){
+        var $ = cheerio.load(body);
+        $('div[style*=important]').each(function(i, el){
+            console.log('---------------------------');
+            console.log(($(this).text()));
+        });
+    }).form(query); 
+};
+
 ATMFetcher.getCities = function(callback){
     var url = "http://gmmobile.atm-mi.it/wsbw/CalcolaPercorso",
         cities = [];
@@ -72,11 +88,11 @@ ATMFetcher.getCities = function(callback){
                 console.log($(this).text());  
         });
     });
-
 };
 
 module.exports = ATMFetcher;
-ATMFetcher.getCities();
-var fetcher = new ATMFetcher('viale fulvio testi 1','milano','viale monza 3','milano','',function(body){});
+//ATMFetcher.getCities();
+ATMFetcher.getInfo('2');
+//var fetcher = new ATMFetcher('viale fulvio testi 1','milano','viale monza 3','milano','',function(body){});
 //fetcher.getRoute();
 //callback per passare valore
