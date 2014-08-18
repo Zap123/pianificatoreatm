@@ -24,11 +24,6 @@ function ATMFetcher(partenza,comuneS, arrivo,comuneE, opzioni, callback){
         'cmdRicerca': 'Calcola',
         'mezzo': '1',
         'opzioni': '0'
-        //'txtbwDateDay': '',
-        //'txtbwDateMonth': '',
-        //'txtbwDateYear': '',
-        //'txtbwTimeHour': '',
-        //'txtbwTimeMinute': '' 
     };
 }
 
@@ -59,7 +54,8 @@ ATMFetcher.prototype.printRoute = function(html){
     });
 };
 
-ATMFetcher.getInfo = function(linea){
+/* Non necessaria
+ * ATMFetcher.getInfo = function(linea){
     var url = "http://gmmobile.atm-mi.it/wsbw/InfoTraffico",
     query = {
         'codLinea': linea,
@@ -77,25 +73,28 @@ ATMFetcher.getInfo = function(linea){
         });
     }).form(query); 
 };
+*/
 
 ATMFetcher.getCities = function(callback){
-    //lista città di partenza/arrivo
+    //lista città di partenza-arrivo
     var url = "http://gmmobile.atm-mi.it/wsbw/CalcolaPercorso",
         cities = [];
     options.url = url;
     request(options, function(err, resp, body){
         var $ = cheerio.load(body);
-           $('#dlComuneS').each(function(i, el){
-               //TODO:Exporter
-                console.log($(this).text());  
+           $('#dlComuneS').children().each(function(i, el){
+               cities[i] = 
+               {
+		 nome: $(this).text()
+	       };
         });
+	callback(cities);
     });
 };
 
 ATMFetcher.getNews = function(callback){
     //Comunicati ufficiali ATM
     var url = "http://www.atm.it/IT/ATMNEWS/Pagine/default.aspx",
-        that = this,
         news = [];
 
         options.url = url;
@@ -114,11 +113,10 @@ ATMFetcher.getNews = function(callback){
 
 
 module.exports = ATMFetcher;
-//ATMFetcher.getCities();
-ATMFetcher.getNews(function(data){
-    console.log(data);
-});
+//ATMFetcher.getCities(function(data){console.log(data);});
+//ATMFetcher.getNews(function(data){
+//    console.log(data);
+//});
 
 //var fetcher = new ATMFetcher('viale fulvio testi 1','milano','viale monza 3','milano','',function(body){});
 //fetcher.getRoute();
-//callback per passare valore
