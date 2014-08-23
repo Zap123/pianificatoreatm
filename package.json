@@ -1,13 +1,14 @@
 {
-    "name":"PianificatoreATM",
-    "description":"Un pianificatore di percorsi su rete ATM-Milano che integra informazioni da Twitter.",
-    "author":"Luca Costa",
-    "version":"1.0.0",
-    "private":true,
-    "dependencies":{
-        "ntwitter":"0.5.x",
-        "cheerio": "0.x.x",
-        "request": "2.x.x",
-        "express": "3.x"
-    }
+  "name": "PianificatoreATM",
+  "description": "Un pianificatore di percorsi su rete ATM-Milano che integra informazioni da Twitter.",
+  "author": "Luca Costa",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "body-parser": "1.6.x",
+    "cheerio": "0.x.x",
+    "express": "4.x",
+    "ntwitter": "0.5.x",
+    "request": "2.x.x"
+  }
 }
