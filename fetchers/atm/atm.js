@@ -41,19 +41,29 @@ ATMFetcher.prototype.getRoute = function() {
 };
 
 ATMFetcher.prototype.printRoute = function(html) {
+    //TODO: SWITCH JSON
+    //TODO: Valore0 dinamico, corretta gerarchia
     var $ = cheerio.load(html),
         routes = [],
+        hrScope = 0,
+        //tempi di percorrenza
         info = $('div span.name').first().text();
 
-    routes.push({
-        'info': info
-    });
     $ = cheerio.load($('.stoplist').html());
-    var hr = $('hr').each(function(i, el) {
-        //separa i passi del percorso
-        console.log($(this).nextUntil('hr').text());
-        console.log('-----------------');
-        //TODO: SWITCH JSON
+    $('hr').each(function(i,el){
+        console.log("STEP " +i);
+        $(this).nextUntil('hr').each(function(s,el){
+            elemento = $(this).text();
+            if(elemento.match(":")){
+                valore = elemento.split(":");
+                console.log(valore[0]);
+                routes.push ({
+                    'valore[0]' : valore[1]
+                });
+            }
+//            console.log(i+$(this).html());
+        });
+        console.log(routes);
     });
 };
 
@@ -119,5 +129,5 @@ module.exports = ATMFetcher;
 //    console.log(data);
 //});
 
-//var fetcher = new ATMFetcher('viale fulvio testi 1','milano','viale monza 3','milano','');
-//fetcher.getRoute();
+var fetcher = new ATMFetcher('viale fulvio testi 1','milano','viale monza 3','milano','');
+fetcher.getRoute();
