@@ -51,20 +51,22 @@ ATMFetcher.prototype.printRoute = function(html) {
 
     $ = cheerio.load($('.stoplist').html());
     $('hr').each(function(i,el){
+        var step = [];
         console.log("STEP " +i);
-        $(this).nextUntil('hr').each(function(s,el){
+        $(this).nextUntil('hr').each(function(j,el){
             elemento = $(this).text();
             if(elemento.match(":")){
-                valore = elemento.split(":");
+                //rimuovo caratteri di a capo
+                valore = elemento.replace(/(\r\n|\n|\r)/gm,"").trim();
+                valore = valore.split(":");
+               //risolvere 1 
                 console.log(valore[0]);
-                routes.push ({
-                    'valore[0]' : valore[1]
-                });
+                step[valore[0]]=valore[1];
             }
-//            console.log(i+$(this).html());
         });
-        console.log(routes);
+        routes[i]= step;
     });
+    console.log(routes);
 };
 
 /* Non necessaria
