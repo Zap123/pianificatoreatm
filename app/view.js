@@ -49,7 +49,20 @@ planner.view = function(ctrl) {
                     value: "Calcola"
                 }),
                 m("div",[
-                    ctrl.plan().map(function(step){})
+                  m("div",[
+                      ctrl.plan().info
+                  ]), 
+                  m("div",[
+                      ctrl.plan().steps.map(function(step){
+                          var ret = [];
+                          for (var literal in step) {
+                            ret.push(m("div", [ 
+                                     literal + " " + step[literal]
+                             ]));
+                          }
+                          return ret;
+                      })
+                  ])
                 ]),
             ])
         ])

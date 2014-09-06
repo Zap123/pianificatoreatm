@@ -3,8 +3,8 @@ planner.controller = function() {
     this.cityStart = m.prop("milano");
     this.to = m.prop("");
     this.cityEnd = m.prop("milano");
-    this.plan = m.prop(['Sigma']);
-
+    this.plan = m.prop({steps:[]});
+    
     this.cities = planner.CitiesList();
     this.route = function() {
         if (this.from() && this.to()) {

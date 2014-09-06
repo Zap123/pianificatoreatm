@@ -130,5 +130,5 @@ module.exports = ATMFetcher;
 //    console.log(data);
 //});
 
-var fetcher = new ATMFetcher('viale fulvio testi 1','milano','viale monza 3','milano','');
-fetcher.getRoute(function(data){console.log(data);});
+//var fetcher = new ATMFetcher('viale fulvio testi 1','milano','viale monza 3','milano','');
+//fetcher.getRoute(function(data){console.log(data);});
