@@ -27,7 +27,10 @@ app.post('/route', function(req, res) {
         cityE = req.param('cityE'); 
     if (from && to) {
         var atm = new fetcher(from, cityS, to, cityE, '');
-        res.send(atm.getRoute());
+        atm.getRoute(function(data){
+            console.log(data);
+            res.send(data);
+        });
         
     }
     /*

@@ -45,9 +45,14 @@ planner.view = function(ctrl) {
                 ]),
                 m("input", {
                     type: "submit",
-                    onclick: ctrl.route
-                }, "Calcola")
+                    onclick: ctrl.route,
+                    value: "Calcola"
+                }),
+                m("div",[
+                    ctrl.plan().map(function(step){})
+                ]),
             ])
         ])
     ]);
 };
+

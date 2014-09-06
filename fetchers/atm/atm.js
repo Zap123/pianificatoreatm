@@ -1,6 +1,5 @@
 //TODO:MAPPA COORDINATE
 //TODO:  gestire indirizzo ambiguo
-//TODO: estrarre keyword mezzi (prendi la linea)
 var request = require('request'),
     cheerio = require('cheerio');
 
@@ -29,45 +28,45 @@ function ATMFetcher(partenza, comuneS, arrivo, comuneE, opzioni) {
 }
 
 
-ATMFetcher.prototype.getRoute = function() {
+ATMFetcher.prototype.getRoute = function(callback) {
     // Giromilano trova percorso
     var that = this,
         url = "http://gmmobile.atm-mi.it/wsbw/SoluzioniFreqMode";
 
     options.url = url;
     request.post(options, function(err, resp, body) {
-        that.printRoute(body);
+        callback(that.printRoute(body));
     }).form(this.query);
 };
 
 ATMFetcher.prototype.printRoute = function(html) {
-    //TODO: SWITCH JSON
-    //TODO: Valore0 dinamico, corretta gerarchia
+    //TODO: Aggiungere link utili
+    //TODO: Estrarre fermate
     var $ = cheerio.load(html),
-        routes = [],
         hrScope = 0,
+        routes = {},
         //tempi di percorrenza
-        info = $('div span.name').first().text();
-
+        info = $('div span.name').first().text().trim();
+    routes.info = info;
+    routes.steps = [];
+        
     $ = cheerio.load($('.stoplist').html());
     $('hr').each(function(i,el){
-        var step = [];
-        console.log("STEP " +i);
+        var step = {};
         $(this).nextUntil('hr').each(function(j,el){
             elemento = $(this).text();
             if(elemento.match(":")){
                 //rimuovo caratteri di a capo
                 valore = elemento.replace(/(\r\n|\n|\r)/gm,"").trim();
                 valore = valore.split(":");
-               //risolvere 1 
-                console.log(valore[0]);
-                step[valore[0]]=valore[1];
+                step[valore[0].trim()] = valore[1].trim();
             }
         });
-        routes[i]= step;
+        routes.steps[i] = step;
     });
-    console.log(routes);
+    return routes;
 };
+
 
 /* Non necessaria
  * ATMFetcher.getInfo = function(linea){
@@ -132,4 +131,4 @@ module.exports = ATMFetcher;
 //});
 
 var fetcher = new ATMFetcher('viale fulvio testi 1','milano','viale monza 3','milano','');
-fetcher.getRoute();
+fetcher.getRoute(function(data){console.log(data);});
