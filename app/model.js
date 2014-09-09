@@ -8,12 +8,20 @@ planner.Planner = function(data) {
     this.to = m.prop(data.to);
     this.options = m.prop(data.options);
     this.plan = m.prop(data.plan);
+    this.tab = m.prop(data.tab);
 };
 
 planner.CitiesList = function() {
     return m.request({
         method: "GET",
         url: "/cities"
+    });
+};
+
+planner.NewsList = function() {
+    return m.request({
+        method: "GET",
+        url: "/news"
     });
 };
 
