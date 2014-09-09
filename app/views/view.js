@@ -2,11 +2,11 @@ planner.view = function(ctrl) {
     return m("html", [
         m("link", {
             rel: "stylesheet",
-            href: "style.css"
+            href: "css/style.css"
         }),
         m("link", {
             rel: "stylesheet",
-            href: "pure-skin-red.css"
+            href: "css/pure-skin-red.css"
         }),
         m("title", "PianificatoreATM"),
         m("body",{class:"pure-skin-red"}, [
@@ -90,6 +90,7 @@ planner.view = function(ctrl) {
                     value: "Calcola"
                 }),
             ]),
+
             m("div",{class:"pure-menu pure-menu-open pure-menu-horizontal"},[
                     m("ul",[
                         m("li",{class:"pure-menu-selected"},[
@@ -104,47 +105,7 @@ planner.view = function(ctrl) {
                     ])
             ]),
             //Navigazione
-            m("div", [
-                m("table",{class:"pure-table"}, [
-                    m("thead",[
-                        m("tr",[    
-                            m("th",""),
-                            m("th","Comunicati")
-                        ])
-                    ]),
-                    ctrl.news().map(function(news){
-                    return     m("tr",[
-                                 m("td",[m("a",{href:news.url}, "🔗 ")]),
-                                 m("td", news.testo)
-                                ]);
-                    })
-                ]),
-                    
-                m("strong", {
-                    class: "font-bold block"
-                }, [
-                    ctrl.plan().info
-                ]),
-                m("ol", [
-                    ctrl.plan().steps.map(function(step) {
-                        var ret = [];
-                        var i = 0;
-                        for (var literal in step) {
-                            if (i === 0) {
-                                ret.push(m("li", [
-                                    literal + " " + step[literal]
-                                ]));
-                            } else {
-                                ret.push(m("div", [
-                                    literal + " " + step[literal]
-                                ]));
-                            }
-                            i++;
-                        }
-                        return ret;
-                    })
-                ])
-            ]),
+            m("#dashboard",[new dashboard.view(ctrl.dash)])
         ])
     ]);
 };

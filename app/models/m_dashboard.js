@@ -1,21 +1,8 @@
-var planner = {},
-    informationbar = {};
+var dashboard = {};
 
-planner.Planner = function(data) {
-    this.cityStart = m.prop(data.cityStart);
-    this.from = m.prop(data.from);
-    this.cityEnd = m.prop(data.cityEnd);
-    this.to = m.prop(data.to);
-    this.options = m.prop(data.options);
+dashboard.Dashboard = function(data){
     this.plan = m.prop(data.plan);
     this.tab = m.prop(data.tab);
-};
-
-planner.CitiesList = function() {
-    return m.request({
-        method: "GET",
-        url: "/cities"
-    });
 };
 
 planner.NewsList = function() {
