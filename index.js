@@ -24,9 +24,11 @@ app.post('/route', function(req, res) {
     var from = req.param('from'),
         cityS = req.param('cityS'),
         to = req.param('to'),
-        cityE = req.param('cityE'); 
+        cityE = req.param('cityE');
+        options = req.param('options');
     if (from && to) {
-        var atm = new fetcher(from, cityS, to, cityE, '');
+        console.log(options);
+        var atm = new fetcher(from, cityS, to, cityE, options);
         atm.getRoute(function(data){
             console.log(data);
             res.send(data);

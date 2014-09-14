@@ -23,8 +23,8 @@ function ATMFetcher(partenza, comuneS, arrivo, comuneE, opzioni) {
         'txtIndirizzoE': arrivo,
         'dlComuneE': comuneE,
         'cmdRicerca': 'Calcola',
-        'mezzo': '1',
-        'opzioni': '0'
+        'mezzo': opzioni.mezzi,
+        'opzioni': opzioni.percorso
     };
 }
 
@@ -41,11 +41,11 @@ ATMFetcher.prototype.getRoute = function (callback) {
 };
 
 ATMFetcher.prototype.printRoute = function (html) {
-    //TODO: Aggiungere link utili
     //TODO: Estrarre fermate
     var $ = cheerio.load(html),
         hrScope = 0,
         routes = {},
+        linea = [],
         //tempi di percorrenza
         info = $('div span.name').first().text().trim();
     routes.info = info;
@@ -60,6 +60,10 @@ ATMFetcher.prototype.printRoute = function (html) {
                 //rimuovo caratteri di a capo
                 valore = elemento.replace(/(\r\n|\n|\r)/gm, "").trim();
                 valore = valore.split(":");
+                //estrazione linee per twitter
+                if (valore[0].match("prendi la linea")) {
+                    linea.push(valore[1].split(' ')[1]);
+                }
                 step[valore[0].trim()] = valore[1].trim();
             }
             //Trattazione dei casi per i link a funzionalità
@@ -72,11 +76,19 @@ ATMFetcher.prototype.printRoute = function (html) {
         });
         routes.steps[i] = step;
     });
+    ATMFetcher.twitterNews(linea);
     return routes;
 };
 
 
+ATMFetcher.twitterNews = function (linee) {
+    linee.forEach(function(el){
+        console.log(el);
+    });
+};
+
 /* Non necessaria
+ * Decommentare
  * ATMFetcher.getInfo = function(linea){
     var url = "http://gmmobile.atm-mi.it/wsbw/InfoTraffico",
     query = {

@@ -7,6 +7,8 @@ planner.Planner = function(data) {
     this.cityEnd = m.prop(data.cityEnd);
     this.to = m.prop(data.to);
     this.options = m.prop(data.options);
+    this.tipoPercorso = m.prop(data.tipoPercorso);
+    this.mezzi = m.prop(1);
 };
 
 planner.CitiesList = function() {

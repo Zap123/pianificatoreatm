@@ -97,10 +97,16 @@ planner.view = function (ctrl) {
                     }, [
                         m("fieldset", [
                             m("legend", "Come si desidera viaggiare?"),
-                            m("select", [
-                                m("option", "Il percorso più veloce"),
-                                m("option", "Pochi tratti a piedi"),
-                                m("option", "Pochi trasbordi")
+                            m("select",{onchange: m.withAttr("value", ctrl.tipoPercorso)}, [
+                                m("option", {
+                                    value: 0
+                                }, "Il percorso più veloce"),
+                                m("option", {
+                                    value: 1
+                                }, "Pochi tratti a piedi"),
+                                m("option", {
+                                    value: 2
+                                }, "Pochi trasbordi")
                             ]),
                         ]),
                         m("div", [
@@ -110,6 +116,7 @@ planner.view = function (ctrl) {
                             }, [
                                 m("input[type=radio]", {
                                     value: 1,
+                                    onchange: m.withAttr("value", ctrl.mezzi),
                                     name: "mezzi",
                                     id: "tutti-mezzi",
                                     checked: true
@@ -122,6 +129,7 @@ planner.view = function (ctrl) {
                             }, [
                                 m("input[type=radio]", {
                                     value: 3,
+                                    onchange: m.withAttr("value", ctrl.mezzi),
                                     name: "mezzi",
                                     id: "no-metro",
                                 }),
