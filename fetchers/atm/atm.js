@@ -1,4 +1,5 @@
 //TODO:MAPPA COORDINATE
+//TODO: Eccezioni connessione non avvenuta
 //TODO:  gestire indirizzo ambiguo
 var request = require('request'),
     cheerio = require('cheerio');
@@ -28,18 +29,18 @@ function ATMFetcher(partenza, comuneS, arrivo, comuneE, opzioni) {
 }
 
 
-ATMFetcher.prototype.getRoute = function(callback) {
+ATMFetcher.prototype.getRoute = function (callback) {
     // Giromilano trova percorso
     var that = this,
         url = "http://gmmobile.atm-mi.it/wsbw/SoluzioniFreqMode";
 
     options.url = url;
-    request.post(options, function(err, resp, body) {
+    request.post(options, function (err, resp, body) {
         callback(that.printRoute(body));
     }).form(this.query);
 };
 
-ATMFetcher.prototype.printRoute = function(html) {
+ATMFetcher.prototype.printRoute = function (html) {
     //TODO: Aggiungere link utili
     //TODO: Estrarre fermate
     var $ = cheerio.load(html),
@@ -49,17 +50,24 @@ ATMFetcher.prototype.printRoute = function(html) {
         info = $('div span.name').first().text().trim();
     routes.info = info;
     routes.steps = [];
-        
+
     $ = cheerio.load($('.stoplist').html());
-    $('hr').each(function(i,el){
+    $('hr').each(function (i, el) {
         var step = {};
-        $(this).nextUntil('hr').each(function(j,el){
+        $(this).nextUntil('hr').each(function (j, el) {
             elemento = $(this).text();
-            if(elemento.match(":")){
+            if (elemento.match(":")) {
                 //rimuovo caratteri di a capo
-                valore = elemento.replace(/(\r\n|\n|\r)/gm,"").trim();
+                valore = elemento.replace(/(\r\n|\n|\r)/gm, "").trim();
                 valore = valore.split(":");
                 step[valore[0].trim()] = valore[1].trim();
+            }
+            //Trattazione dei casi per i link a funzionalità
+            if ($(this).attr('class') === "orariPdf") {
+                step.pdf = $(this).children().attr('href');
+            }
+            if ($(this).attr('class') === "listIcon" && $(this).children().children().attr('alt') === "orari") {
+                step.infoTraffico = "http://gmmobile.atm-mi.it" + $(this).children().attr('href');
             }
         });
         routes.steps[i] = step;
@@ -89,14 +97,14 @@ ATMFetcher.prototype.printRoute = function(html) {
 };
 */
 
-ATMFetcher.getCities = function(callback) {
+ATMFetcher.getCities = function (callback) {
     //lista città di partenza-arrivo
     var url = "http://gmmobile.atm-mi.it/wsbw/CalcolaPercorso",
         cities = [];
     options.url = url;
-    request(options, function(err, resp, body) {
+    request(options, function (err, resp, body) {
         var $ = cheerio.load(body);
-        $('#dlComuneS').children().each(function(i, el) {
+        $('#dlComuneS').children().each(function (i, el) {
             cities[i] = {
                 nome: $(this).text()
             };
@@ -105,15 +113,15 @@ ATMFetcher.getCities = function(callback) {
     });
 };
 
-ATMFetcher.getNews = function(callback) {
+ATMFetcher.getNews = function (callback) {
     //Comunicati ufficiali ATM
     var url = "http://www.atm.it/IT/ATMNEWS/Pagine/default.aspx",
         news = [];
 
     options.url = url;
-    request(options, function(err, resp, body) {
+    request(options, function (err, resp, body) {
         var $ = cheerio.load(body);
-        $('div.news-item').children().each(function(i, el) {
+        $('div.news-item').children().each(function (i, el) {
             news[i] = {
                 testo: $(this).text(),
                 url: $(this).attr('href')
