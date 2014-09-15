@@ -88,33 +88,6 @@ planner.view = function (ctrl) {
                 ]),
             ]),
             //Navigazione
-            m("div", {
-                class: "pure-menu pure-menu-open pure-menu-horizontal"
-            }, [
-                m("ul", [
-                    m("li", {
-                        class: "pure-menu-selected"
-                    }, [
-                        m("a", {
-                            href: "#"
-                        }, "News"),
-                    ]),
-                    m("li", {
-                        class: "pure-menu-disabled"
-                    }, [
-                        m("a", {
-                            href: "#"
-                        }, "Percorso"),
-                    ]),
-                    m("li", {
-                        class: "pure-menu-disabled"
-                    }, [
-                        m("a", {
-                            href: "#"
-                        }, "Mappa"),
-                    ]),
-                ])
-            ]),
             m("#dashboard", [new dashboard.view(ctrl.dash)])
         ])
     ]);
