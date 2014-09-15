@@ -54,11 +54,13 @@ dashboard.view = function (ctrl) {
                                 switch (literal) {
                                 case 'pdf':
                                     content = m("a", {
+					target: '_blank',
                                         href: step[literal]
                                     }, "orari (pdf)");
                                     break;
                                 case 'infoTraffico':
                                     content = m("a", {
+					target: '_blank',
                                         href: step[literal]
                                     }, "⚠");
                                     break;

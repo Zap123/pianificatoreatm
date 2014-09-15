@@ -46,43 +46,62 @@ ATMFetcher.prototype.printRoute = function (html) {
         hrScope = 0,
         routes = {},
         linea = [],
+        stoplist,
         //tempi di percorrenza
         info = $('div span.name').first().text().trim();
     routes.info = info;
     routes.steps = [];
-
-    $ = cheerio.load($('.stoplist').html());
-    $('hr').each(function (i, el) {
-        var step = {};
-        $(this).nextUntil('hr').each(function (j, el) {
-            elemento = $(this).text();
-            if (elemento.match(":")) {
-                //rimuovo caratteri di a capo
-                valore = elemento.replace(/(\r\n|\n|\r)/gm, "").trim();
-                valore = valore.split(":");
-                //estrazione linee per twitter
-                if (valore[0].match("prendi la linea")) {
-                    linea.push(valore[1].split(' ')[1]);
+    stoplist = $('.stoplist').html();
+    if (stoplist) {
+        $ = cheerio.load(stoplist);
+        $('hr').each(function (i, el) {
+            var step = {};
+            $(this).nextUntil('hr').each(function (j, el) {
+                elemento = $(this).text();
+                if (elemento.match(":")) {
+                    //rimuovo caratteri di a capo
+                    valore = elemento.replace(/(\r\n|\n|\r)/gm, "").trim();
+                    valore = valore.split(":");
+                    //estrazione linee per twitter
+                    if (valore[0].match("prendi la linea")) {
+                        linea.push(valore[1].split(' ')[1]);
+                    }
+                    step[valore[0].trim()] = valore[1].trim();
                 }
-                step[valore[0].trim()] = valore[1].trim();
-            }
-            //Trattazione dei casi per i link a funzionalità
-            if ($(this).attr('class') === "orariPdf") {
-                step.pdf = $(this).children().attr('href');
-            }
-            if ($(this).attr('class') === "listIcon" && $(this).children().children().attr('alt') === "orari") {
-                step.infoTraffico = "http://gmmobile.atm-mi.it" + $(this).children().attr('href');
-            }
+                //Trattazione dei casi per i link a funzionalità
+                if ($(this).attr('class') === "orariPdf") {
+                    step.pdf = $(this).children().attr('href');
+                }
+                if ($(this).attr('class') === "listIcon" && $(this).children().children().attr('alt') === "orari") {
+                    step.infoTraffico = "http://gmmobile.atm-mi.it" + $(this).children().attr('href');
+                }
+            });
+            routes.steps[i] = step;
         });
-        routes.steps[i] = step;
-    });
-    ATMFetcher.twitterNews(linea);
+        ATMFetcher.twitterNews(linea);
+    } else {
+        var partenza = [],
+            arrivo = [];
+        routes.error = true;
+        $('#dlIndirizzoS').children().each(function (i, el) {
+            partenza[i] = {
+                nome: $(this).text()
+            };
+        });
+        $('#dlIndirizzoE').children().each(function (i, el) {
+            arrivo[i] = {
+                nome: $(this).text()
+            };
+        });
+        routes.arrivo = arrivo;
+        routes.partenza = partenza;
+    }
     return routes;
 };
 
 
 ATMFetcher.twitterNews = function (linee) {
-    linee.forEach(function(el){
+    linee.forEach(function (el) {
         console.log(el);
     });
 };
@@ -94,8 +113,8 @@ ATMFetcher.twitterNews = function (linee) {
     query = {
         'codLinea': linea,
         'cmdRicercaDiretta': 'cerca'
-//        'routeType':'0',
-//        'idLine':'-1'
+        'routeType':'0',
+        'idLine':'-1'
     };
 
     options.url = url;

@@ -24,70 +24,16 @@ planner.view = function (ctrl) {
                 }, "PianificatoreATM"),
             ]),
             m("div", {
-                class: "pure-g"
+                class: "pure-g",
+                style: {
+                    padding: '1em'
+                }
             }, [
                 m("div", {
                     class: "pure-u-1 pure-u-md-1-2"
                 }, [
-                    m("form", {
-                        name: "pianificatore",
-                        autocomplete: "on",
-                        class: "pure-form pure-form-aligned",
-                        action: "#"
-                    }, [
-                        m("fieldset", [
-                            m("div", {
-                                class: "pure-control-group"
-                            }, [
-                                m("input", {
-                                    required: true,
-                                    autofocus: true,
-                                    onchange: m.withAttr("value", ctrl.from),
-                                    placeholder: "Da...",
-                                    value: ctrl.from()
-                                }),
-                                m("select", {
-                                    onchange: m.withAttr("value", ctrl.cityStart)
-                                }, ctrl.cities().map(function (city) {
-                                    return city.nome === "milano" ? m("option", {
-                                        selected: "selected"
-                                    }, city.nome) : m("option", city.nome);
-                                })),
-                            ]),
-                            m("div", {
-                                class: "pure-control-group"
-                            }, [
-                                m("input", {
-                                    required: true,
-                                    onchange: m.withAttr("value", ctrl.to),
-                                    value: ctrl.to(),
-                                    placeholder: "A..."
-                                }),
-                                m("select", {
-                                    onchange: m.withAttr("value", ctrl.cityEnd)
-                                }, ctrl.cities().map(function (city) {
-                                    return city.nome === "milano" ? m("option", {
-                                        selected: "selected"
-                                    }, city.nome) : m("option", city.nome);
-                                }))
-                            ]),
-                            m("input", {
-                                //TODO:Implementare funzione reset
-                                type: "submit",
-                                class: "pure-button",
-                                value: "Reset"
-                            }),
-                            m("input", {
-                                type: "submit",
-                                onclick: ctrl.route,
-                                class: "pure-button pure-button-primary",
-                                value: "Calcola"
-                            }),
-
-
-                        ]),
-                    ]),
-
+                //Form pianificatore
+                m("#route", [new routing.view(ctrl.ctrl_routing,ctrl.dash, ctrl)])
                 ]),
                 m("div", {
                     class: "pure-u-1 pure-u-md-1-4"
@@ -97,7 +43,9 @@ planner.view = function (ctrl) {
                     }, [
                         m("fieldset", [
                             m("legend", "Come si desidera viaggiare?"),
-                            m("select",{onchange: m.withAttr("value", ctrl.tipoPercorso)}, [
+                            m("select", {
+                                onchange: m.withAttr("value", ctrl.tipoPercorso)
+                            }, [
                                 m("option", {
                                     value: 0
                                 }, "Il percorso più veloce"),
@@ -139,6 +87,7 @@ planner.view = function (ctrl) {
                     ]),
                 ]),
             ]),
+            //Navigazione
             m("div", {
                 class: "pure-menu pure-menu-open pure-menu-horizontal"
             }, [
@@ -166,7 +115,6 @@ planner.view = function (ctrl) {
                     ]),
                 ])
             ]),
-            //Navigazione
             m("#dashboard", [new dashboard.view(ctrl.dash)])
         ])
     ]);
