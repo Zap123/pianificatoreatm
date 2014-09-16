@@ -1,13 +1,9 @@
 //Ritornare form magari facendo un oggetto in base a partenza/arrivo array
 routing.view = function (ctrl, ctrl_dash, ctrl_main) {
     if (ctrl_dash.plan().error) {
-        var partenza = ctrl_dash.plan().partenza,
-            arrivo = ctrl_dash.plan().arrivo;
-        //TODO: FIX preimposta un valore quando va in errore per via ambigua
-        if(partenza.length !==0)
-            ctrl.from(partenza[0].nome);
-        if(arrivo.length !==0)
-            ctrl.to(arrivo[0].nome);
+        //TODO: FIX ERRORE PREDEFINITA VIA AMBIGUA
+        //Se vado in errore ritorno alle news
+        ctrl_dash.setTab(1);
         return m("div", [
             m("strong", "Non è stato possibile trovare un percorso"),
             m("form", {
@@ -44,8 +40,8 @@ routing.view = function (ctrl, ctrl_dash, ctrl_main) {
                         ])
                     ]),
                     m("input", {
-                        //TODO:Implementare funzione reset
                         type: "submit",
+                        onclick: ctrl_main.reset,
                         class: "pure-button",
                         value: "Reset"
                     }),
@@ -103,9 +99,9 @@ routing.view = function (ctrl, ctrl_dash, ctrl_main) {
                     }))
                 ]),
                 m("input", {
-                    //TODO:Implementare funzione reset
                     type: "submit",
                     class: "pure-button",
+                    onclick: ctrl_main.reset,
                     value: "Reset"
                 }),
                 m("input", {
@@ -132,6 +128,7 @@ routing.form = function (alternative, luogo) {
     } else {
        //luogo(alternative[0].nome);
        console.log(luogo()); 
+       luogo(alternative[0].nome);
         return m("select", {
             onchange: m.withAttr("value", luogo)
         }, alternative.map(function (via) {
@@ -139,3 +136,4 @@ routing.form = function (alternative, luogo) {
         }));
     }
 };
+

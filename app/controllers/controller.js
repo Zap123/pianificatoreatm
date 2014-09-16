@@ -4,6 +4,16 @@ planner.controller = function () {
     this.ctrl_routing = new routing.controller();
     this.dash = new dashboard.controller();
 
+    this.reset = function () {
+        this.ctrl_routing.from("");
+        this.ctrl_routing.to("");
+        this.ctrl_routing.cityStart("milano");
+        this.ctrl_routing.cityEnd("milano");
+        this.tipoPercorso(0);
+        this.mezzi(1);
+        this.dash.setTab(1);
+        this.dash.plan().error = false;
+    }.bind(this);
     this.route = function () {
         if (this.ctrl_routing.from() && this.ctrl_routing.to()) {
             this.dash.plan = planner.Route(

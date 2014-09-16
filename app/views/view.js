@@ -33,7 +33,7 @@ planner.view = function (ctrl) {
                     class: "pure-u-1 pure-u-md-1-2"
                 }, [
                 //Form pianificatore
-                m("#route", [new routing.view(ctrl.ctrl_routing,ctrl.dash, ctrl)])
+                m("#route", [new routing.view(ctrl.ctrl_routing,ctrl.dash, ctrl)]),
                 ]),
                 m("div", {
                     class: "pure-u-1 pure-u-md-1-4"

@@ -3,6 +3,7 @@ dashboard.controller = function () {
     this.plan = m.prop({
         info: [],
         steps: [],
+        plan: function(){return {error:false};}
     });
     this.news = dashboard.NewsList();
     this.setTab = function (tab) {
