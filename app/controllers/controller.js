@@ -13,25 +13,27 @@ planner.controller = function () {
         this.tipoPercorso(0);
         this.mezzi(1);
         this.dash.setTab(1);
-        this.dash.plan().error = false;
+        this.plan().error = false;
     }.bind(this);
+
     this.route = function () {
-        if (this.ctrl_routing.from() && this.ctrl_routing.to()) {
-            planner.Route(
-                this.ctrl_routing.from(), this.ctrl_routing.cityStart(),
-                this.ctrl_routing.to(), this.ctrl_routing.cityEnd(), {
-                    mezzi: this.mezzi(),
-                    percorso: this.tipoPercorso()
-                }).then(this.plan).then(function (resp) {
-                if (resp.partenza.length > 0) {
-                    this.ctrl_routing.from(resp.partenza[0].nome);
-                }
-                if (resp.arrivo.length > 0) {
-                    this.ctrl_routing.to(resp.arrivo[0].nome);
-                }
-                return resp;
-            }.bind(this));
+        planner.Route(
+            this.ctrl_routing.from(), this.ctrl_routing.cityStart(),
+            this.ctrl_routing.to(), this.ctrl_routing.cityEnd(), {
+                mezzi: this.mezzi(),
+                percorso: this.tipoPercorso()
+            }).then(this.plan).then(this.responseBehaviour);
+    }.bind(this);
+
+    this.responseBehaviour = function (resp) {
+        if (resp.error !== true) {
             this.dash.setTab(2);
+            if (resp.partenza.length > 0) {
+                this.ctrl_routing.from(resp.partenza[0].nome);
+            }
+            if (resp.arrivo.length > 0) {
+                this.ctrl_routing.to(resp.arrivo[0].nome);
+            }
         }
     }.bind(this);
 };

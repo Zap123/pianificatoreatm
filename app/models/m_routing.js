@@ -7,10 +7,9 @@ routing.Routing = function (data) {
     this.to = m.prop(data.to);
 };
 
-routing.CitiesList = function() {
+routing.CitiesList = function () {
     return m.request({
         method: "GET",
         url: "/cities"
     });
 };
-

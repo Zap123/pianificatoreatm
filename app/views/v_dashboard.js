@@ -129,7 +129,9 @@ dashboard.menu_dash = function (ctrl) {
                 }, [
                     m("a", {
                         href: "#",
-                        onclick: function(){ctrl.setTab(1);}
+                        onclick: function () {
+                            ctrl.setTab(1);
+                        }
                     }, "News"),
                 ]),
                 m("li", {

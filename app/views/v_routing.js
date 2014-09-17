@@ -1,10 +1,7 @@
 //Ritornare form magari facendo un oggetto in base a partenza/arrivo array
-routing.view = function (ctrl, ctrl_dash, ctrl_main) {
-    console.log(ctrl_main.plan());
+routing.view = function (ctrl, ctrl_main) {
     if (ctrl_main.plan().error) {
-        //TODO: FIX ERRORE PREDEFINITA VIA AMBIGUA
         //Se vado in errore ritorno alle news
-        ctrl_dash.setTab(1);
         return m("div", [
             m("strong", "Non è stato possibile trovare un percorso"),
             m("form", {
@@ -18,40 +15,17 @@ routing.view = function (ctrl, ctrl_dash, ctrl_main) {
                         class: "pure-control-group"
                     }, [
                         m("#form", [routing.form(ctrl_main.plan().partenza, ctrl.from),
-                            m("select", {
-                                onchange: m.withAttr("value", ctrl.cityStart)
-                            }, ctrl.cities().map(function (city) {
-                                return city.nome === ctrl.cityStart() ? m("option", {
-                                    selected: "selected"
-                                }, city.nome) : m("option", city.nome);
-                            })),
+                            routing.cities(ctrl.cities(), ctrl.cityStart)
                         ])
                     ]),
                     m("div", {
                         class: "pure-control-group"
                     }, [
                         m("#form", [routing.form(ctrl_main.plan().arrivo, ctrl.to),
-                            m("select", {
-                                onchange: m.withAttr("value", ctrl.cityEnd)
-                            }, ctrl.cities().map(function (city) {
-                                return city.nome === ctrl.cityEnd() ? m("option", {
-                                    selected: "selected"
-                                }, city.nome) : m("option", city.nome);
-                            })),
+                            routing.cities(ctrl.cities(), ctrl.cityEnd)
                         ])
                     ]),
-                    m("input", {
-                        type: "submit",
-                        onclick: ctrl_main.reset,
-                        class: "pure-button",
-                        value: "Reset"
-                    }),
-                    m("input", {
-                        type: "submit",
-                        onclick: ctrl_main.route,
-                        class: "pure-button pure-button-primary",
-                        value: "Calcola"
-                    }),
+                    routing.actions(ctrl_main.reset, ctrl_main.route)
                 ]),
             ])
         ]);
@@ -67,50 +41,18 @@ routing.view = function (ctrl, ctrl_dash, ctrl_main) {
                 m("div", {
                     class: "pure-control-group"
                 }, [
-                    m("input", {
-                        required: true,
-                        autofocus: true,
-                        onchange: m.withAttr("value", ctrl.from),
-                        placeholder: "Da...",
-                        value: ctrl.from()
-                    }),
-                    m("select", {
-                        onchange: m.withAttr("value", ctrl.cityStart)
-                    }, ctrl.cities().map(function (city) {
-                        return city.nome === ctrl.cityStart() ? m("option", {
-                            selected: "selected"
-                        }, city.nome) : m("option", city.nome);
-                    })),
+                    m("#form", [routing.form([], ctrl.from),
+                        routing.cities(ctrl.cities(), ctrl.cityStart),
+                    ])
                 ]),
                 m("div", {
                     class: "pure-control-group"
                 }, [
-                    m("input", {
-                        required: true,
-                        onchange: m.withAttr("value", ctrl.to),
-                        value: ctrl.to(),
-                        placeholder: "A..."
-                    }),
-                    m("select", {
-                        onchange: m.withAttr("value", ctrl.cityEnd)
-                    }, ctrl.cities().map(function (city) {
-                        return city.nome === ctrl.cityEnd() ? m("option", {
-                            selected: "selected"
-                        }, city.nome) : m("option", city.nome);
-                    }))
+                    m("#form", [routing.form([], ctrl.to),
+                        routing.cities(ctrl.cities(), ctrl.cityEnd)
+                    ])
                 ]),
-                m("input", {
-                    type: "submit",
-                    class: "pure-button",
-                    onclick: ctrl_main.reset,
-                    value: "Reset"
-                }),
-                m("input", {
-                    type: "submit",
-                    onclick: ctrl_main.route,
-                    class: "pure-button pure-button-primary",
-                    value: "Calcola"
-                }),
+                routing.actions(ctrl_main.reset, ctrl_main.route)
             ]),
         ]);
     }
@@ -127,8 +69,6 @@ routing.form = function (alternative, luogo) {
             value: luogo()
         });
     } else {
-       //luogo(alternative[0].nome);
-       console.log(luogo()); 
         return m("select", {
             onchange: m.withAttr("value", luogo)
         }, alternative.map(function (via) {
@@ -137,3 +77,31 @@ routing.form = function (alternative, luogo) {
     }
 };
 
+routing.cities = function (citiesList, selectedCity) {
+    return m("select", {
+        onchange: m.withAttr("value", selectedCity)
+    }, citiesList.map(function (city) {
+        return city.nome === selectedCity() ? m("option", {
+            selected: "selected"
+        }, city.nome) : m("option", city.nome);
+    }));
+};
+
+routing.actions = function (reset, send) {
+    return m("div", {
+        class: "pure-control-group"
+    }, [
+        m("input", {
+            type: "button",
+            class: "pure-button",
+            onclick: reset,
+            value: "Reset"
+        }),
+        m("input", {
+            type: "submit",
+            onclick: send,
+            class: "pure-button pure-button-primary",
+            value: "Calcola"
+        })
+    ]);
+};
