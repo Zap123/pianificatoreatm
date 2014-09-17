@@ -1,4 +1,4 @@
-dashboard.view = function (ctrl) {
+dashboard.view = function (ctrl, plan) {
     switch (ctrl.tab()) {
         //Comunicati
     case 1:
@@ -30,7 +30,7 @@ dashboard.view = function (ctrl) {
             m("strong", {
                 class: "font-bold block"
             }, [
-                ctrl.plan().info
+                plan().info
             ]),
             m("div", [
                 m("table", {
@@ -40,7 +40,7 @@ dashboard.view = function (ctrl) {
                         m("th", "#"),
                         m("th", "Itinerario sulla rete ATM")
                     ]),
-                    ctrl.plan().steps.map(function (step, i) {
+                    plan().steps.map(function (step, i) {
                         var j = 0,
                             ret = [];
                         for (var literal in step) {

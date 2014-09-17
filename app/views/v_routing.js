@@ -1,6 +1,7 @@
 //Ritornare form magari facendo un oggetto in base a partenza/arrivo array
 routing.view = function (ctrl, ctrl_dash, ctrl_main) {
-    if (ctrl_dash.plan().error) {
+    console.log(ctrl_main.plan());
+    if (ctrl_main.plan().error) {
         //TODO: FIX ERRORE PREDEFINITA VIA AMBIGUA
         //Se vado in errore ritorno alle news
         ctrl_dash.setTab(1);
@@ -16,7 +17,7 @@ routing.view = function (ctrl, ctrl_dash, ctrl_main) {
                     m("div", {
                         class: "pure-control-group"
                     }, [
-                        m("#form", [routing.form(ctrl_dash.plan().partenza, ctrl.from),
+                        m("#form", [routing.form(ctrl_main.plan().partenza, ctrl.from),
                             m("select", {
                                 onchange: m.withAttr("value", ctrl.cityStart)
                             }, ctrl.cities().map(function (city) {
@@ -29,7 +30,7 @@ routing.view = function (ctrl, ctrl_dash, ctrl_main) {
                     m("div", {
                         class: "pure-control-group"
                     }, [
-                        m("#form", [routing.form(ctrl_dash.plan().arrivo, ctrl.to),
+                        m("#form", [routing.form(ctrl_main.plan().arrivo, ctrl.to),
                             m("select", {
                                 onchange: m.withAttr("value", ctrl.cityEnd)
                             }, ctrl.cities().map(function (city) {
@@ -128,7 +129,6 @@ routing.form = function (alternative, luogo) {
     } else {
        //luogo(alternative[0].nome);
        console.log(luogo()); 
-       luogo(alternative[0].nome);
         return m("select", {
             onchange: m.withAttr("value", luogo)
         }, alternative.map(function (via) {

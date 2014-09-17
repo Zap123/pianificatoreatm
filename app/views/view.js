@@ -88,7 +88,7 @@ planner.view = function (ctrl) {
                 ]),
             ]),
             //Navigazione
-            m("#dashboard", [new dashboard.view(ctrl.dash)])
+            m("#dashboard", [new dashboard.view(ctrl.dash, ctrl.plan)])
         ])
     ]);
 };
