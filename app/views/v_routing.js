@@ -14,14 +14,14 @@ routing.view = function (ctrl, ctrl_main) {
                     m("div", {
                         class: "pure-control-group"
                     }, [
-                        m("#form", [routing.form(ctrl_main.plan().partenza, ctrl.from),
+                        m("#form", [routing.form(ctrl_main.plan().partenza, ctrl.from, "Da..."),
                             routing.cities(ctrl.cities(), ctrl.cityStart)
                         ])
                     ]),
                     m("div", {
                         class: "pure-control-group"
                     }, [
-                        m("#form", [routing.form(ctrl_main.plan().arrivo, ctrl.to),
+                        m("#form", [routing.form(ctrl_main.plan().arrivo, ctrl.to, "A..."),
                             routing.cities(ctrl.cities(), ctrl.cityEnd)
                         ])
                     ]),
@@ -41,14 +41,14 @@ routing.view = function (ctrl, ctrl_main) {
                 m("div", {
                     class: "pure-control-group"
                 }, [
-                    m("#form", [routing.form([], ctrl.from),
+                    m("#form", [routing.form([], ctrl.from, "Da..."),
                         routing.cities(ctrl.cities(), ctrl.cityStart),
                     ])
                 ]),
                 m("div", {
                     class: "pure-control-group"
                 }, [
-                    m("#form", [routing.form([], ctrl.to),
+                    m("#form", [routing.form([], ctrl.to, "A..."),
                         routing.cities(ctrl.cities(), ctrl.cityEnd)
                     ])
                 ]),
@@ -58,14 +58,14 @@ routing.view = function (ctrl, ctrl_main) {
     }
 };
 
-routing.form = function (alternative, luogo) {
+routing.form = function (alternative, luogo, placeholder) {
     //comportamento del form per cercare la via con gestione degli errori
     if (alternative.length === 0) {
         return m("input", {
             required: true,
             autofocus: true,
             onchange: m.withAttr("value", luogo),
-            placeholder: "Da...",
+            placeholder: placeholder,
             value: luogo()
         });
     } else {
