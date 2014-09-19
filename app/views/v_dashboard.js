@@ -115,7 +115,9 @@ dashboard.tab = function (ctrl, name) {
     }, [
         m("a", {
             onclick: function () {
-                ctrl.setTab(name);
+                if (ctrl.ready()) {
+                    ctrl.setTab(name);
+                }
             }
         }, name)
     ]);
