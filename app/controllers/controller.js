@@ -12,7 +12,7 @@ planner.controller = function () {
         this.ctrl_routing.cityEnd("milano");
         this.tipoPercorso(0);
         this.mezzi(1);
-        this.dash.setTab(1);
+        this.dash.setTab('News');
         this.plan().error = false;
     }.bind(this);
 
@@ -26,8 +26,8 @@ planner.controller = function () {
     }.bind(this);
 
     this.responseBehaviour = function (resp) {
+        this.dash.setTab("Percorso");
         if (resp.error !== true) {
-            this.dash.setTab(2);
             if (resp.partenza.length > 0) {
                 this.ctrl_routing.from(resp.partenza[0].nome);
             }

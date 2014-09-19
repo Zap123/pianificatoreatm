@@ -1,7 +1,5 @@
 var dashboard = {};
-dashboard.Dashboard = function (data) {
-    this.tab = m.prop(data.tab);
-};
+dashboard.Dashboard = function (data) {};
 dashboard.NewsList = function () {
     return m.request({
         method: "GET",

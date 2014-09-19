@@ -1,7 +1,5 @@
-//Ritornare form magari facendo un oggetto in base a partenza/arrivo array
 routing.view = function (ctrl, ctrl_main) {
     if (ctrl_main.plan().error) {
-        //Se vado in errore ritorno alle news
         return m("div", [
             m("strong", "Non è stato possibile trovare un percorso"),
             m("form", {

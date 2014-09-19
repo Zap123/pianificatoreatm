@@ -1,154 +1,126 @@
 dashboard.view = function (ctrl, plan) {
-    switch (ctrl.tab()) {
-        //Comunicati
-    case 1:
-        return m("div", [
-            m("#menu_dash", [dashboard.menu_dash(ctrl)]),
+    console.log(ctrl.tab);
+    return (".container", [
+        dashboard.menu(ctrl),
+        //Helper selezione tab
+        dashboard.choose(ctrl.tab, {
+            "News": [dashboard.comunicati, ctrl.news()],
+            "Percorso": [dashboard.percorso, plan]
+        }),
+    ]);
+};
+
+dashboard.comunicati = function (comunicati) {
+    return ("div", [
+        m("table", {
+            class: "pure-table"
+        }, [
+            m("thead", [
+                m("tr", [
+                    m("th", ""),
+                    m("th", "comunicati")
+                ])
+            ]),
+            comunicati.map(function (news) {
+                return m("tr", [
+                    m("td", [m("a", {
+                        href: news.url
+                    }, "🔗 ")]),
+                    m("td", news.testo)
+                ]);
+            })
+        ])
+    ]);
+};
+
+dashboard.percorso = function (plan) {
+    return ("div", [
+        m("strong", {
+            class: "font-bold block"
+        }, [
+            plan().info
+        ]),
+        m("div", [
             m("table", {
                 class: "pure-table"
             }, [
                 m("thead", [
-                    m("tr", [
-                        m("th", ""),
-                        m("th", "Comunicati")
-                    ])
+                    m("th", "#"),
+                    m("th", "Itinerario sulla rete ATM")
                 ]),
-                ctrl.news().map(function (news) {
-                    return m("tr", [
-                        m("td", [m("a", {
-                            href: news.url
-                        }, "🔗 ")]),
-                        m("td", news.testo)
-                    ]);
-                })
-            ])
-        ]);
-        //Percorsi
-    case 2:
-        return m("div", [
-            m("#menu_dash", [dashboard.menu_dash(ctrl)]),
-            m("strong", {
-                class: "font-bold block"
-            }, [
-                plan().info
-            ]),
-            m("div", [
-                m("table", {
-                    class: "pure-table"
-                }, [
-                    m("thead", [
-                        m("th", "#"),
-                        m("th", "Itinerario sulla rete ATM")
-                    ]),
-                    plan().steps.map(function (step, i) {
-                        var j = 0,
-                            ret = [];
-                        for (var literal in step) {
-                            if (j === 0) {
-                                ret.push(m("tr", {
-                                    class: "pure-table-odd"
-                                }, [
-                                    m("td", i + 1),
-                                    m("td", [
-                                        literal + " " + step[literal]
-                                    ])
-                                ]));
-                            } else {
-                                var content;
-                                switch (literal) {
-                                case 'pdf':
-                                    content = m("a", {
-                                        target: '_blank',
-                                        href: step[literal]
-                                    }, "orari (pdf)");
-                                    break;
-                                case 'infoTraffico':
-                                    content = m("a", {
-                                        target: '_blank',
-                                        href: step[literal]
-                                    }, "⚠");
-                                    break;
-                                default:
-                                    content = literal + " " + step[literal];
-                                }
-                                ret.push(m("tr", [
-                                    m("td", ""),
-                                    m("td", [
-                                        content
-                                    ])
-                                ]));
-
-                            }
+                plan().steps.map(function (step, i) {
+                    var j = 0,
+                        ret = [];
+                    for (var literal in step) {
+                        if (j === 0) {
                             j++;
+                            ret.push(m("tr", {
+                                class: "pure-table-odd"
+                            }, [
+                                m("td", i + 1),
+                                m("td", [
+                                    literal + " " + step[literal]
+                                ])
+                            ]));
+                        } else {
+                            var content;
+                            switch (literal) {
+                            case 'pdf':
+                                content = m("a", {
+                                    target: '_blank',
+                                    href: step[literal]
+                                }, "orari (pdf)");
+                                break;
+                            case 'infoTraffico':
+                                content = m("a", {
+                                    target: '_blank',
+                                    href: step[literal]
+                                }, "⚠");
+                                break;
+                            default:
+                                content = literal + " " + step[literal];
+                            }
+                            ret.push(m("tr", [
+                                m("td", ""),
+                                m("td", [
+                                    content
+                                ])
+                            ]));
+
                         }
-                        return ret;
-                    })
-                ]),
+                    }
+                    return ret;
+                })
             ]),
-        ]);
-    }
+        ]),
+    ]);
 };
 
-dashboard.menu_dash = function (ctrl) {
-    switch (ctrl.tab()) {
-    case 1:
-        return m("div", {
-            class: "pure-menu pure-menu-open pure-menu-horizontal"
-        }, [
-            m("ul", [
-                m("li", {
-                    class: "pure-menu-selected"
-                }, [
-                    m("a", {
-                        href: "#"
-                    }, "News"),
-                ]),
-                m("li", {
-                    class: "pure-menu-disabled"
-                }, [
-                    m("a", {
-                        href: "#"
-                    }, "Percorso"),
-                ]),
-                m("li", {
-                    class: "pure-menu-disabled"
-                }, [
-                    m("a", {
-                        href: "#"
-                    }, "Mappa"),
-                ]),
-            ])
-        ]);
-    case 2:
-        return m("div", {
-            class: "pure-menu pure-menu-open pure-menu-horizontal"
-        }, [
-            m("ul", [
-                m("li", {
-                    class: "pure-menu"
-                }, [
-                    m("a", {
-                        href: "#",
-                        onclick: function () {
-                            ctrl.setTab(1);
-                        }
-                    }, "News"),
-                ]),
-                m("li", {
-                    class: "pure-menu-selected"
-                }, [
-                    m("a", {
-                        href: "#"
-                    }, "Percorso"),
-                ]),
-                m("li", {
-                    class: "pure-menu"
-                }, [
-                    m("a", {
-                        href: "#"
-                    }, "Mappa"),
-                ]),
-            ])
-        ]);
-    }
+dashboard.menu = function (ctrl) {
+    return m("div", {
+        class: "pure-menu pure-menu-open pure-menu-horizontal"
+    }, [
+        m("ul", [
+            dashboard.tab(ctrl, "News"),
+            dashboard.tab(ctrl, "Percorso"),
+            dashboard.tab(ctrl, "Mappa")
+        ])
+    ]);
+};
+
+dashboard.tab = function (ctrl, name) {
+    return m("li", {
+        class: ctrl.tab === name ? "pure-menu-selected" : ""
+    }, [
+        m("a", {
+            onclick: function () {
+                ctrl.setTab(name);
+            }
+        }, name)
+    ]);
+};
+
+dashboard.choose = function (key, options) {
+    var option = options[key];
+    return option[0](option[1]);
 };
