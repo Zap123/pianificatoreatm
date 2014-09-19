@@ -44,10 +44,11 @@ dashboard.percorso = function (plan) {
             m("table", {
                 class: "pure-table"
             }, [
-                m("thead", [
+                //Non visualizzare tabella se via non trovata
+                (!plan().error) ? m("thead", [
                     m("th", "#"),
                     m("th", "Itinerario sulla rete ATM")
-                ]),
+                ]) : "",
                 plan().steps.map(function (step, i) {
                     var j = 0,
                         ret = [];
