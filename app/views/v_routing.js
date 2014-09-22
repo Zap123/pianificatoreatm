@@ -1,4 +1,5 @@
 routing.view = function (ctrl, ctrl_main) {
+    console.log(ctrl.to());
     if (ctrl_main.plan().error) {
         return m("div", [
             m("strong", "Non è stato possibile trovare un percorso"),

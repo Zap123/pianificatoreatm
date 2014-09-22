@@ -28,7 +28,7 @@ planner.controller = function () {
     this.responseBehaviour = function (resp) {
         this.dash.setTab("Percorso");
         this.dash.ready(true);
-        if (resp.error !== true) {
+        if (resp.error === true) {
             if (resp.partenza.length > 0) {
                 this.ctrl_routing.from(resp.partenza[0].nome);
             }
