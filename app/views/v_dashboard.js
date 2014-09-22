@@ -1,17 +1,18 @@
 dashboard.view = function (ctrl, plan) {
     console.log(ctrl.tab);
-    return (".container", [
+    return m(".container", [
         dashboard.menu(ctrl),
         //Helper selezione tab
         dashboard.choose(ctrl.tab, {
             "News": [dashboard.comunicati, ctrl.news()],
-            "Percorso": [dashboard.percorso, plan]
+            "Percorso": [dashboard.percorso, plan],
+            "Mappa": [dashboard.mappa, plan]
         }),
     ]);
 };
 
 dashboard.comunicati = function (comunicati) {
-    return ("div", [
+    return m("div", [
         m("table", {
             class: "pure-table"
         }, [
@@ -33,8 +34,17 @@ dashboard.comunicati = function (comunicati) {
     ]);
 };
 
+dashboard.mappa = function (plan) {
+    if (plan().mapsImg) {
+        return m("div",[m("img", {
+            src: plan().mapsImg,
+            class: "pure-img"
+        })]);
+    }
+};
+
 dashboard.percorso = function (plan) {
-    return ("div", [
+    return m("div", [
         m("strong", {
             class: "font-bold block"
         }, [

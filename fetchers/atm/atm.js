@@ -1,15 +1,15 @@
 //TODO:MAPPA COORDINATE
 //TODO: Eccezioni connessione non avvenuta
-//TODO:  gestire indirizzo ambiguo
 var request = require('request'),
     cheerio = require('cheerio');
 
-// user-agent necessario per comunicare con il server ATM/Mobile
-var options = {
+request = request.defaults({
+    jar: true,
     headers: {
         'User-Agent': 'NokiaN97i/SymbianOS/9.1 Series60/3.0'
     }
-};
+});
+
 
 function ATMFetcher(partenza, comuneS, arrivo, comuneE, opzioni) {
     this.query = {
@@ -34,24 +34,28 @@ ATMFetcher.prototype.getRoute = function (callback) {
     var that = this,
         url = "http://gmmobile.atm-mi.it/wsbw/SoluzioniFreqMode";
 
-    options.url = url;
-    request.post(options, function (err, resp, body) {
-        callback(that.printRoute(body));
+    request.post(url, function (err, resp, body) {
+        that.getMap(function (maps) {
+            callback(that.printRoute(body,maps));
+        });
     }).form(this.query);
 };
 
-ATMFetcher.prototype.printRoute = function (html) {
-    //TODO: Estrarre fermate
+ATMFetcher.prototype.printRoute = function (html, mapsImg) {
     var $ = cheerio.load(html),
         hrScope = 0,
-        routes = {},
+        routes = {
+            mapsImg: mapsImg
+        },
         linea = [],
         stoplist,
         //tempi di percorrenza
         info = $('div span.name').first().text().trim();
+
     routes.info = info;
     routes.steps = [];
     stoplist = $('.stoplist').html();
+    //Se esiste un percorso lo prendo 
     if (stoplist) {
         $ = cheerio.load(stoplist);
         $('hr').each(function (i, el) {
@@ -78,6 +82,7 @@ ATMFetcher.prototype.printRoute = function (html) {
             });
             routes.steps[i] = step;
         });
+        console.log(routes.maps);
         ATMFetcher.twitterNews(linea);
     } else {
         var partenza = [],
@@ -106,8 +111,18 @@ ATMFetcher.twitterNews = function (linee) {
     });
 };
 
+ATMFetcher.prototype.getMap = function (callback) {
+    // Giromilano trova percorso
+    var that = this,
+        url = "http://gmmobile.atm-mi.it/wsbw/FullNavigator";
+    request(url, function (err, resp, body) {
+        $ = cheerio.load(body);
+        callback($("img[style*=margin-left]").attr("src"));
+    });
+};
+
+
 /* Non necessaria
- * Decommentare
  * ATMFetcher.getInfo = function(linea){
     var url = "http://gmmobile.atm-mi.it/wsbw/InfoTraffico",
     query = {
@@ -117,8 +132,7 @@ ATMFetcher.twitterNews = function (linee) {
         'idLine':'-1'
     };
 
-    options.url = url;
-    request.post(options, function(err, resp, body){
+    request.post(url, function(err, resp, body){
         var $ = cheerio.load(body);
         $('div[style*=important]').each(function(i, el){
             console.log('---------------------------');
@@ -132,8 +146,7 @@ ATMFetcher.getCities = function (callback) {
     //lista città di partenza-arrivo
     var url = "http://gmmobile.atm-mi.it/wsbw/CalcolaPercorso",
         cities = [];
-    options.url = url;
-    request(options, function (err, resp, body) {
+    request(url, function (err, resp, body) {
         var $ = cheerio.load(body);
         $('#dlComuneS').children().each(function (i, el) {
             cities[i] = {
@@ -149,8 +162,7 @@ ATMFetcher.getNews = function (callback) {
     var url = "http://www.atm.it/IT/ATMNEWS/Pagine/default.aspx",
         news = [];
 
-    options.url = url;
-    request(options, function (err, resp, body) {
+    request(url, function (err, resp, body) {
         var $ = cheerio.load(body);
         $('div.news-item').children().each(function (i, el) {
             news[i] = {
@@ -169,5 +181,10 @@ module.exports = ATMFetcher;
 //    console.log(data);
 //});
 
-//var fetcher = new ATMFetcher('viale fulvio testi 1','milano','viale monza 3','milano','');
-//fetcher.getRoute(function(data){console.log(data);});
+var fetcher = new ATMFetcher('viale fulvio testi', 'milano', 'viale monza', 'milano', {
+    mezzi: 1,
+    percorso: 0
+});
+fetcher.getRoute(function (data) {
+    console.log(data);
+});

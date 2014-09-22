@@ -1,5 +1,3 @@
-//TODO:Planner interfaccia post
-//TODO:Interfaccia in file separato
 var express = require('express'),
     app = express(),
     fetcher = require('./fetchers/atm/atm'),
