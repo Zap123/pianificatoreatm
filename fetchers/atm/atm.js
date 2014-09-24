@@ -1,7 +1,7 @@
-//TODO:MAPPA COORDINATE
-//TODO: Eccezioni connessione non avvenuta
+//TODO: Eccezioni connessione non avvenuta (throw error)
 var request = require('request'),
-    cheerio = require('cheerio');
+    cheerio = require('cheerio'),
+    fs = require('fs');
 
 request = request.defaults({
     jar: true,
@@ -36,7 +36,7 @@ ATMFetcher.prototype.getRoute = function (callback) {
 
     request.post(url, function (err, resp, body) {
         that.getMap(function (maps) {
-            callback(that.printRoute(body,maps));
+            callback(that.printRoute(body, maps));
         });
     }).form(this.query);
 };
@@ -83,7 +83,8 @@ ATMFetcher.prototype.printRoute = function (html, mapsImg) {
             routes.steps[i] = step;
         });
         console.log(routes.maps);
-        ATMFetcher.twitterNews(linea);
+        //TODO: Ritornare oggetto regole socket
+        this.twitterNews(linea);
     } else {
         var partenza = [],
             arrivo = [];
@@ -105,10 +106,97 @@ ATMFetcher.prototype.printRoute = function (html, mapsImg) {
 };
 
 
-ATMFetcher.twitterNews = function (linee) {
-    linee.forEach(function (el) {
-        console.log(el);
-    });
+ATMFetcher.prototype.twitterNews = function (linee) {
+    fs.readFile('../../connectors/twitter/cache/atm_informa', function (err, data) {
+        var tweets = JSON.parse(data),
+            datacur = new Date(tweets[0].created_at),
+            cur = 0,
+            classificationObj = {
+                weight: 0,
+                news: []
+            };
+        //controllo se per ogni linea ci sono dei tweet e se quest'informazione è di oggi
+        //TODO: AGGIUNGERE CONTROLLO TODAY
+        while (linee.length > 0 && cur < tweets.length - 1) {
+            console.log(linee);
+            //Guardo dentro a un tweet se parla di una linea
+            linee.forEach(function (linea, i) {
+                tweets[cur].entities.hashtags.forEach(function (hash) {
+                    //Cerco ':' e prendo solo gli hash precedenti perché sono i soggetti
+                    var subjectIndex = tweets[cur].text.indexOf(':');
+                    if (hash.indices[1] < subjectIndex) {
+                        tweets[cur].text = tweets[cur].text.slice(subjectIndex);
+                        if (hash.text === linea) {
+                            classification = this.classify(tweets[cur], hash.text);
+                            //Se è stata applicata una regola
+                            //come euristica cancello linea e non cerco altre informazioni
+                            //perché probabilmente non più valide
+                            if (classification.match) {
+                                linee.splice(i, 1);
+                                //Se issue === undefined non invio l'oggetto perché info risolta
+                                if (classification.issue) {
+                                    //do un peso alle notizie
+                                    //0:nessun problema, 1:incertezze, 2: rallentamenti, 3:problemi seri
+                                    if (classificationObj.weight < classification.weight)
+                                        classificationObj.weight = classification.weight;
+                                    classificationObj.news.push(classification);
+                                }
+                            }
+                        }
+                    }
+                }.bind(this));
+            }.bind(this));
+            cur++;
+            datacur = new Date(tweets[cur].created_at);
+        }
+        return classificationObj;
+    }.bind(this));
+};
+
+ATMFetcher.prototype.classify = function (tweet, hash) {
+    informationObject = {
+        match: false,
+    };
+
+    //casistica keyword
+    rules = {
+        'rallentamenti': function () {
+            //Non vengono sempre segnalate le risoluzione, TODO:annullare dopo un paio d'ore
+            informationObject.issue = ATMFetcher.formatTweet(hash, tweet.text);
+            informationObject.match = true;
+            informationObject.weight = "2";
+            informationObject.date = tweet.created_at;
+        },
+        'modifica': function () {
+            //Già gestita altrove, riportata qui come whitelist
+            informationObject.match = true;
+        },
+        'sospesa': function () {
+            informationObject.issue = ATMFetcher.formatTweet(hash, tweet.text);
+            informationObject.match = true;
+            informationObject.weight = "3";
+            informationObject.date = tweet.created_at;
+        },
+        'termina': function () {
+            informationObject.issue = ATMFetcher.formatTweet(hash, tweet.text);
+            informationObject.match = true;
+            informationObject.weight = "3";
+            informationObject.date = tweet.created_at;
+        },
+    };
+
+    for (var expr in rules) {
+        if (tweet.text.match(new RegExp(expr))) {
+            rules[expr]();
+        }
+    }
+
+    console.log(informationObject.issue);
+    return informationObject;
+};
+
+ATMFetcher.formatTweet = function (subject, text) {
+    return subject + text;
 };
 
 ATMFetcher.prototype.getMap = function (callback) {
@@ -185,6 +273,8 @@ var fetcher = new ATMFetcher('viale fulvio testi', 'milano', 'viale monza', 'mil
     mezzi: 1,
     percorso: 0
 });
+fetcher.twitterNews(['bus47', 'tram7']);
+/*
 fetcher.getRoute(function (data) {
     console.log(data);
-});
+});*/
