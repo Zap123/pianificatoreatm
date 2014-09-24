@@ -116,8 +116,8 @@ ATMFetcher.prototype.twitterNews = function (linee) {
                 news: []
             };
         //controllo se per ogni linea ci sono dei tweet e se quest'informazione è di oggi
-        //TODO: AGGIUNGERE CONTROLLO TODAY
-        while (linee.length > 0 && cur < tweets.length - 1) {
+        //TODO: TESTARE CONTROLLO TODAY
+        while (linee.length > 0 && cur < tweets.length - 1 && new Date() - datacur < 86400) {
             console.log(linee);
             //Guardo dentro a un tweet se parla di una linea
             linee.forEach(function (linea, i) {

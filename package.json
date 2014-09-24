@@ -8,7 +8,8 @@
     "body-parser": "1.6.x",
     "cheerio": "0.x.x",
     "express": "4.x",
-    "ntwitter": "0.5.x",
-    "request": "2.x.x"
+    "twit": "1.1.x",
+    "request": "2.x.x",
+    "tough-cookie": "0.12.x"
   }
 }
