@@ -82,9 +82,8 @@ ATMFetcher.prototype.printRoute = function (html, mapsImg) {
             });
             routes.steps[i] = step;
         });
-        console.log(routes.maps);
         //TODO: Ritornare oggetto regole socket
-        this.twitterNews(linea);
+       console.log(this.twitterNews(linea));
     } else {
         var partenza = [],
             arrivo = [];
@@ -107,17 +106,18 @@ ATMFetcher.prototype.printRoute = function (html, mapsImg) {
 
 
 ATMFetcher.prototype.twitterNews = function (linee) {
-    fs.readFile('../../connectors/twitter/cache/atm_informa', function (err, data) {
+    fs.readFile('connectors/twitter/cache/atm_informa', function (err, data) {
         var tweets = JSON.parse(data),
             datacur = new Date(tweets[0].created_at),
             cur = 0,
+            today = new Date().setHours(0,0,0),
             classificationObj = {
                 weight: 0,
                 news: []
             };
         //controllo se per ogni linea ci sono dei tweet e se quest'informazione è di oggi
         //TODO: TESTARE CONTROLLO TODAY
-        while (linee.length > 0 && cur < tweets.length - 1 && new Date() - datacur < 86400) {
+        while (linee.length > 0 && cur < tweets.length - 1 &&  datacur > today) {
             console.log(linee);
             //Guardo dentro a un tweet se parla di una linea
             linee.forEach(function (linea, i) {
@@ -149,6 +149,7 @@ ATMFetcher.prototype.twitterNews = function (linee) {
             cur++;
             datacur = new Date(tweets[cur].created_at);
         }
+        console.log(classificationObj);
         return classificationObj;
     }.bind(this));
 };
@@ -160,6 +161,12 @@ ATMFetcher.prototype.classify = function (tweet, hash) {
 
     //casistica keyword
     rules = {
+        'devia.*': function () {
+            informationObject.issue = ATMFetcher.formatTweet(hash, tweet.text);
+            informationObject.match = true;
+            informationObject.weight = "1";
+            informationObject.date = tweet.created_at;
+        },
         'rallentamenti': function () {
             //Non vengono sempre segnalate le risoluzione, TODO:annullare dopo un paio d'ore
             informationObject.issue = ATMFetcher.formatTweet(hash, tweet.text);
@@ -169,6 +176,10 @@ ATMFetcher.prototype.classify = function (tweet, hash) {
         },
         'modifica': function () {
             //Già gestita altrove, riportata qui come whitelist
+            informationObject.match = true;
+        },
+        'riprend.*': function () {
+            //Situazione risolta, non la invio, modificare nel caso di sistema continuo
             informationObject.match = true;
         },
         'sospesa': function () {
@@ -268,13 +279,13 @@ module.exports = ATMFetcher;
 //ATMFetcher.getNews(function(data){
 //    console.log(data);
 //});
-
+/*
 var fetcher = new ATMFetcher('viale fulvio testi', 'milano', 'viale monza', 'milano', {
     mezzi: 1,
     percorso: 0
 });
-fetcher.twitterNews(['bus47', 'tram7']);
-/*
+fetcher.twitterNews(['bus50', 'tram19']);
+
 fetcher.getRoute(function (data) {
     console.log(data);
 });*/
