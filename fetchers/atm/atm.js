@@ -118,6 +118,11 @@ ATMFetcher.prototype.twitterNews = function (linee) {
                 news: []
             };
         //controllo se per ogni linea ci sono dei tweet e se quest'informazione è di oggi
+        console.log("-------");
+        console.log(tweets[0].created_at);
+        console.log(today);
+        console.log(datacur);
+        console.log(datacur > today);
         while (linee.length > 0 && cur < tweets.length && datacur > today) {
             //Guardo dentro a un tweet se parla di una linea
             console.log(linee);
@@ -125,6 +130,7 @@ ATMFetcher.prototype.twitterNews = function (linee) {
             linee.forEach(function(linea, linea_index){
                 tweets[cur].entities.hashtags.forEach(function (hash) {
                     //Cerco ':' e prendo solo gli hash precedenti perché sono i soggetti
+                    console.log(tweets[cur].text.match(':'));
                     var subjectIndex = tweets[cur].text.indexOf(':');
                     if (hash.indices[1] <= subjectIndex) {
                         if (hash.text.match(new RegExp(linea))) {
@@ -149,7 +155,8 @@ ATMFetcher.prototype.twitterNews = function (linee) {
                 }.bind(this));
             }.bind(this));
             cur++;
-            datacur = new Date(tweets[cur].created_at);
+            if(tweets[cur] !== undefined)
+                datacur = new Date(tweets[cur].created_at);
         }
         console.log(classificationObj);
         return classificationObj;
@@ -284,7 +291,7 @@ var fetcher = new ATMFetcher('viale fulvio testi', 'milano', 'viale monza', 'mil
     mezzi: 1,
     percorso: 0
 });
-fetcher.twitterNews(['M1','50', '16']);
+fetcher.twitterNews(['M1','50', '16', '16', '16']);
 
 //fetcher.getRoute(function (data) {
 //    console.log(data);
