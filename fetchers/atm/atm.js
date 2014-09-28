@@ -1,4 +1,3 @@
-//TODO: Eccezioni connessione non avvenuta (throw error)
 var request = require('request'),
     cheerio = require('cheerio'),
     fs = require('fs');
@@ -35,6 +34,7 @@ ATMFetcher.prototype.getRoute = function (callback) {
         url = "http://gmmobile.atm-mi.it/wsbw/SoluzioniFreqMode";
 
     request.post(url, function (err, resp, body) {
+        if (err) throw err;
         that.getMap(function (maps) {
             var route = that.printRoute(body, maps);
             if (route.twitter) {
@@ -53,7 +53,7 @@ ATMFetcher.prototype.getRoute = function (callback) {
 ATMFetcher.prototype.printRoute = function (html, mapsImg) {
     var $ = cheerio.load(html),
         hrScope = 0,
-        linee = [],
+        linee = {nomi:[], direzioni:[]},
         routes = {
             mapsImg: mapsImg
         },
@@ -80,8 +80,8 @@ ATMFetcher.prototype.printRoute = function (html, mapsImg) {
                         i_leftpar = valore[1].indexOf('(');
                         i_dash = valore[1].indexOf('-', i_leftpar);
                         var direzione = valore[1].slice(i_leftpar + 1, i_dash);
-                        linee.push(valore[1].split(' ')[1]);
-                        //direzione: direzione
+                        linee.nomi.push(valore[1].split(' ')[1]);
+                        linee.direzioni.push(direzione);
                     }
                     step[valore[0].trim()] = valore[1].trim();
                 }
@@ -120,6 +120,7 @@ ATMFetcher.prototype.printRoute = function (html, mapsImg) {
 ATMFetcher.prototype.twitterNews = function (linee, callback) {
     console.log(linee);
     fs.readFile("./connectors/twitter/cache/atm_informa", function (err, data) {
+        if (err) throw err;
         var tweets = JSON.parse(data),
             datacur = new Date(tweets[0].created_at),
             cur = 0,
@@ -131,18 +132,18 @@ ATMFetcher.prototype.twitterNews = function (linee, callback) {
             };
         //controllo se per ogni linea ci sono dei tweet e se quest'informazione è di oggi
         console.log(datacur > today);
-        while (linee.length > 0 && cur < tweets.length && datacur > today) {
+        while (linee.nomi.length > 0 && cur < tweets.length && datacur > today) {
             //Guardo dentro a un tweet se parla di una linea
             console.log(linee);
             var alreadyUsedTweet = false;
             hashtags = tweets[cur].entities.hashtags;
-            for (var linea = 0; linea < linee.length; linea++) {
+            for (var linea = 0; linea < linee.nomi.length; linea++) {
                 var hash = 0;
                 var found = false;
                 while (!found && hash < hashtags.length) {
                     //Cerco ':' e prendo solo gli hash precedenti perché sono i soggetti
                     //se non trovo il soggetto nel primo ':' controllo negli altri
-                    console.log(linee[linea] + "_____");
+                    console.log(linee.nomi[linea] + "_____");
                     var subjectIndex = tweets[cur].text.indexOf(':');
                     var isSubject = false;
                     while (!isSubject && subjectIndex != -1) {
@@ -153,8 +154,8 @@ ATMFetcher.prototype.twitterNews = function (linee, callback) {
                         }
                     }
                     if (isSubject) {
-                        console.log(hashtags[hash].text + "-" + linee[linea]);
-                        found = hashtags[hash].text.match(new RegExp(linee[linea]));
+                        console.log(hashtags[hash].text + "-" + linee.nomi[linea]);
+                        found = hashtags[hash].text.match(new RegExp(linee.nomi[linea]));
                         if (found) {
                             console.log(tweets[cur].text);
                             classification = this.classify(tweets[cur], hashtags[hash].text, subjectIndex);
@@ -162,10 +163,10 @@ ATMFetcher.prototype.twitterNews = function (linee, callback) {
                             //come euristica cancello linea e non cerco altre informazioni
                             //perché probabilmente non più valide
                             if (classification.match) {
-                                linee.splice(linea, 1);
+                                linee.nomi.splice(linea, 1);
                                 // [x,y] cancellando x => [y] non incremento contatore
                                 linea--;
-                                console.log(linee);
+                                console.log(linee.nomi);
                                 //Se issue === undefined non invio l'oggetto perché info risolta
                                 if (classification.issue) {
                                     //do un peso alle notizie
@@ -220,8 +221,8 @@ ATMFetcher.prototype.classify = function (tweet, hash, subjectIndex) {
             informationObject.match = true;
             informationObject.issue = false;
         },
-        'sospesa|circolazione sospesa|sospendono': function () {
-            informationObject.issue = true);
+        'sospesa|sospensione|sospendono': function () {
+            informationObject.issue = true;
             informationObject.match = true;
             informationObject.weight = "3";
             informationObject.date = tweet.created_at;
@@ -235,7 +236,7 @@ ATMFetcher.prototype.classify = function (tweet, hash, subjectIndex) {
     };
     //controllo la prima parola dopo ':' se è una keyword
     for (var expr in rules) {
-        if (tweet.text.slice(subjectIndex + 2).split(' ')[0].match(expr)) {
+        if (this.stripUnwanted(tweet.text.slice(subjectIndex + 2)).split(' ')[0].match(expr)) {
             console.log(expr);
             rules[expr]();
         }
@@ -246,8 +247,22 @@ ATMFetcher.prototype.classify = function (tweet, hash, subjectIndex) {
 };
 
 
-ATMFetcher.stripUnwantedWords = function (text) {
-    return subject + text.slice(subjectIndex);
+ATMFetcher.prototype.stripUnwanted = function (text) {
+    var words = {
+        'circolazione sospesa':'sospesa',
+        'la circolazione riprende':'riprende',
+        'la circolazione è normale':'riprende',
+        'la circolazione sta riprendendo':'riprende',
+        'riprende il percorso regolare con rallentamenti':'rallentamenti',
+        'bus di collegamento':'sospesa',
+        'utilizzare il':'sospesa',
+        'prosegue la deviazione':'deviazione',
+        'la circolazione viene effettuata con':'sospesa'
+    };
+    for (var strip in words) {
+        text = text.replace(strip, words[strip]);
+    }
+    return text;
 };
 
 ATMFetcher.prototype.getMap = function (callback) {
@@ -255,6 +270,7 @@ ATMFetcher.prototype.getMap = function (callback) {
     var that = this,
         url = "http://gmmobile.atm-mi.it/wsbw/FullNavigator";
     request(url, function (err, resp, body) {
+        if (err) throw err;
         $ = cheerio.load(body);
         callback($("img[style*=margin-left]").attr("src"));
     });
@@ -286,6 +302,7 @@ ATMFetcher.getCities = function (callback) {
     var url = "http://gmmobile.atm-mi.it/wsbw/CalcolaPercorso",
         cities = [];
     request(url, function (err, resp, body) {
+        if (err) throw err;
         var $ = cheerio.load(body);
         $('#dlComuneS').children().each(function (i, el) {
             cities[i] = {
@@ -302,6 +319,7 @@ ATMFetcher.getNews = function (callback) {
         news = [];
 
     request(url, function (err, resp, body) {
+        if (err) throw err;
         var $ = cheerio.load(body);
         $('div.news-item').children().each(function (i, el) {
             news[i] = {

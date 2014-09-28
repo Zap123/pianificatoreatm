@@ -133,6 +133,14 @@ dashboard.infoTwitter = function (tweetObj) {
                 }
             }, "Stato: ⧗ Rallentamenti"),
         ]);
+     else if (tweetObj.weight == 1)
+        return m("div", [
+            m('div', {
+                'style': {
+                    'color': '#BABDB6'
+                }
+            }, "Stato: ❓ Incerto"),
+        ]);
     else {
         return m("div", {
             'style': {
@@ -146,8 +154,7 @@ dashboard.infoTwitter = function (tweetObj) {
 dashboard.twitter = function (tweets) {
     return m("div", {
         'style': {
-            'width': '430px',
-            'font-family': 'Arial, Helvetica, sans serif'
+            'width': '430px'
         }
     }, [
         tweets.map(function (tweet) {
