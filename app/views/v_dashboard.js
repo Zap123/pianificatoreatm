@@ -36,7 +36,7 @@ dashboard.comunicati = function (comunicati) {
 
 dashboard.mappa = function (plan) {
     if (plan().mapsImg) {
-        return m("div",[m("img", {
+        return m("div", [m("img", {
             src: plan().mapsImg,
             class: "pure-img"
         })]);
@@ -44,21 +44,30 @@ dashboard.mappa = function (plan) {
 };
 
 dashboard.percorso = function (plan) {
-    return m("div", [
-        m("strong", {
-            class: "font-bold block"
+    return (plan().error) ? m("strong", "⚠ Non è stato possibile trovare un percorso") : m("div", {
+        'style': {
+            'display': 'inline-block',
+        }
+    }, [
+        m("div", {
+            'style': {
+                'padding': '1em',
+                'border': 'dashed'
+            }
         }, [
-            plan().info
+            m("strong", plan().info),
+            dashboard.infoTwitter(plan().twitter),
+        dashboard.twitter(plan().twitter.news)
         ]),
         m("div", [
             m("table", {
                 class: "pure-table"
             }, [
                 //Non visualizzare tabella se via non trovata
-                (!plan().error) ? m("thead", [
+                m("thead", [
                     m("th", "#"),
                     m("th", "Itinerario sulla rete ATM")
-                ]) : "",
+                ]),
                 plan().steps.map(function (step, i) {
                     var j = 0,
                         ret = [];
@@ -104,6 +113,31 @@ dashboard.percorso = function (plan) {
                 })
             ]),
         ]),
+    ]);
+};
+
+dashboard.infoTwitter = function (tweetObj) {
+    if (tweetObj.weight == 3)
+        return m("div", [
+            m('div', {
+                'style': {
+                    'color': '#CC0000'
+                }
+            }, "Stato: Critico"),
+        ]);
+    else {
+        return m("div", "Stato: ✔ Non sono stati riscontrati problemi sulle linee");
+    }
+};
+
+
+dashboard.twitter = function (tweets) {
+  return  m("div", {
+        'style':{}
+    }, [
+        tweets.map(function (tweet) {
+            return tweet;
+        })
     ]);
 };
 

@@ -36,22 +36,30 @@ ATMFetcher.prototype.getRoute = function (callback) {
 
     request.post(url, function (err, resp, body) {
         that.getMap(function (maps) {
-            callback(that.printRoute(body, maps));
+            var route = that.printRoute(body, maps);
+            if (route.twitter) {
+                that.twitterNews(route.twitter, function (tweets) {
+                    route.twitter = tweets;
+                    callback(route);
+                });
+            } else {
+                callback(route);
+            }
         });
+
     }).form(this.query);
 };
 
 ATMFetcher.prototype.printRoute = function (html, mapsImg) {
     var $ = cheerio.load(html),
         hrScope = 0,
+        linee = [],
         routes = {
             mapsImg: mapsImg
         },
-        linea = [],
         stoplist,
         //tempi di percorrenza
         info = $('div span.name').first().text().trim();
-
     routes.info = info;
     routes.steps = [];
     stoplist = $('.stoplist').html();
@@ -60,15 +68,20 @@ ATMFetcher.prototype.printRoute = function (html, mapsImg) {
         $ = cheerio.load(stoplist);
         $('hr').each(function (i, el) {
             var step = {};
+            console.log(this.linea);
             $(this).nextUntil('hr').each(function (j, el) {
                 elemento = $(this).text();
-                if (elemento.match("/:/")) {
+                if (elemento.indexOf(":") !== -1) {
                     //rimuovo caratteri di a capo
                     valore = elemento.replace(/(\r\n|\n|\r)/gm, "").trim();
                     valore = valore.split(":");
                     //estrazione linee per twitter
-                    if (valore[0].match("/prendi la linea/")) {
-                        linea.push(valore[1].split(' ')[1]);
+                    if (valore[0].indexOf("prendi la linea") !== -1) {
+                        i_leftpar = valore[1].indexOf('(');
+                        i_dash = valore[1].indexOf('-', i_leftpar);
+                        var direzione = valore[1].slice(i_leftpar + 1, i_dash);
+                        linee.push(valore[1].split(' ')[1]);
+                        //direzione: direzione
                     }
                     step[valore[0].trim()] = valore[1].trim();
                 }
@@ -82,10 +95,7 @@ ATMFetcher.prototype.printRoute = function (html, mapsImg) {
             });
             routes.steps[i] = step;
         });
-        //TODO: Ritornare oggetto regole socket 
-        this.twitterNews(linea, function (classObj) {
-            console.log(classObj);
-        });
+        routes.twitter = linee;
     } else {
         var partenza = [],
             arrivo = [];
@@ -107,59 +117,80 @@ ATMFetcher.prototype.printRoute = function (html, mapsImg) {
 };
 
 
-ATMFetcher.prototype.twitterNews = function (linee) {
-    fs.readFile("../../connectors/twitter/cache/atm_informa", function (err, data) {
+ATMFetcher.prototype.twitterNews = function (linee, callback) {
+    console.log(linee);
+    fs.readFile("./connectors/twitter/cache/atm_informa", function (err, data) {
         var tweets = JSON.parse(data),
             datacur = new Date(tweets[0].created_at),
             cur = 0,
             today = new Date().setHours(0, 0, 0),
             classificationObj = {
                 weight: 0,
+                problem: [],
                 news: []
             };
         //controllo se per ogni linea ci sono dei tweet e se quest'informazione è di oggi
-        console.log("-------");
-        console.log(tweets[0].created_at);
-        console.log(today);
-        console.log(datacur);
         console.log(datacur > today);
         while (linee.length > 0 && cur < tweets.length && datacur > today) {
             //Guardo dentro a un tweet se parla di una linea
             console.log(linee);
-            var linea = 0;
-            linee.forEach(function(linea, linea_index){
-                tweets[cur].entities.hashtags.forEach(function (hash) {
+            var alreadyUsedTweet = false;
+            hashtags = tweets[cur].entities.hashtags;
+            for (var linea = 0; linea < linee.length; linea++) {
+                var hash = 0;
+                var found = false;
+                while (!found && hash < hashtags.length) {
                     //Cerco ':' e prendo solo gli hash precedenti perché sono i soggetti
-                    console.log(tweets[cur].text.match(':'));
+                    //se non trovo il soggetto nel primo ':' controllo negli altri
+                    console.log(linee[linea] + "_____");
                     var subjectIndex = tweets[cur].text.indexOf(':');
-                    if (hash.indices[1] <= subjectIndex) {
-                        if (hash.text.match(new RegExp(linea))) {
+                    var isSubject = false;
+                    while (!isSubject && subjectIndex != -1) {
+                        if (hashtags[hash].indices[1] <= subjectIndex) {
+                            isSubject = true;
+                        } else {
+                            subjectIndex = tweets[cur].text.indexOf(':', subjectIndex + 1);
+                        }
+                    }
+                    if (isSubject) {
+                        console.log(hashtags[hash].text + "-" + linee[linea]);
+                        found = hashtags[hash].text.match(new RegExp(linee[linea]));
+                        if (found) {
                             console.log(tweets[cur].text);
-                            classification = this.classify(tweets[cur], hash.text, subjectIndex);
+                            classification = this.classify(tweets[cur], hashtags[hash].text, subjectIndex);
                             //Se è stata applicata una regola
                             //come euristica cancello linea e non cerco altre informazioni
                             //perché probabilmente non più valide
                             if (classification.match) {
-                                linee.splice(linea_index, 1);
+                                linee.splice(linea, 1);
+                                // [x,y] cancellando x => [y] non incremento contatore
+                                linea--;
+                                console.log(linee);
                                 //Se issue === undefined non invio l'oggetto perché info risolta
                                 if (classification.issue) {
                                     //do un peso alle notizie
                                     //0:nessun problema, 1:incertezze, 2: rallentamenti, 3:problemi seri
                                     if (classificationObj.weight < classification.weight)
                                         classificationObj.weight = classification.weight;
-                                    classificationObj.news.push(classification);
+                                    if (!alreadyUsedTweet) {
+                                        classificationObj.news.push(tweets[cur].text.replace(/&gt;/g,'>'));
+                                        alreadyUsedTweet = true;
+                                    }
+                                    classificationObj.problem.push(hashtags[hash].text);
                                 }
                             }
                         }
                     }
-                }.bind(this));
-            }.bind(this));
+                    hash++;
+                }
+                console.log("Fine for nuova linea");
+            }
+            console.log("Nuovo tweet");
             cur++;
-            if(tweets[cur] !== undefined)
+            if (tweets[cur] !== undefined)
                 datacur = new Date(tweets[cur].created_at);
         }
-        console.log(classificationObj);
-        return classificationObj;
+        callback(classificationObj);
     }.bind(this));
 };
 
@@ -171,7 +202,7 @@ ATMFetcher.prototype.classify = function (tweet, hash, subjectIndex) {
     //casistica keyword
     //chiave modifica già gestita da app.web
     rules = {
-        'devia|deviano': function () {
+        'devia|deviano|deviazione': function () {
             informationObject.issue = ATMFetcher.formatTweet(hash, tweet.text, subjectIndex);
             informationObject.match = true;
             informationObject.weight = "1";
@@ -187,8 +218,9 @@ ATMFetcher.prototype.classify = function (tweet, hash, subjectIndex) {
         'riprende|riprendono': function () {
             //Situazione risolta, non la invio, modificare nel caso di sistema continuo
             informationObject.match = true;
+            informationObject.issue = ATMFetcher.formatTweet(hash, tweet.text, subjectIndex);
         },
-        'sospesa': function () {
+        'sospesa|circolazione sospesa|sospendono': function () {
             informationObject.issue = ATMFetcher.formatTweet(hash, tweet.text, subjectIndex);
             informationObject.match = true;
             informationObject.weight = "3";
@@ -203,13 +235,13 @@ ATMFetcher.prototype.classify = function (tweet, hash, subjectIndex) {
     };
     //controllo la prima parola dopo ':' se è una keyword
     for (var expr in rules) {
-        if (tweet.text.slice(subjectIndex+2).split(' ')[0].match(expr)) {
+        if (tweet.text.slice(subjectIndex + 2).split(' ')[0].match(expr)) {
             console.log(expr);
             rules[expr]();
         }
     }
 
-    console.log(informationObject.issue+"<-----");
+    console.log(informationObject.issue + "<-----");
     return informationObject;
 };
 
@@ -287,11 +319,11 @@ module.exports = ATMFetcher;
 //    console.log(data);
 //});
 
-var fetcher = new ATMFetcher('viale fulvio testi', 'milano', 'viale monza', 'milano', {
+/*var fetcher = new ATMFetcher('viale fulvio testi', 'milano', 'viale monza', 'milano', {
     mezzi: 1,
     percorso: 0
-});
-fetcher.twitterNews(['M1','50', '16', '16', '16']);
+});*/
+//fetcher.twitterNews(['16']);
 
 //fetcher.getRoute(function (data) {
 //    console.log(data);
