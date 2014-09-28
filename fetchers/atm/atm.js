@@ -203,14 +203,14 @@ ATMFetcher.prototype.classify = function (tweet, hash, subjectIndex) {
     //chiave modifica già gestita da app.web
     rules = {
         'devia|deviano|deviazione': function () {
-            informationObject.issue = ATMFetcher.formatTweet(hash, tweet.text, subjectIndex);
+            informationObject.issue = true;
             informationObject.match = true;
             informationObject.weight = "1";
             informationObject.date = tweet.created_at;
         },
         'rallentamenti': function () {
             //Non vengono sempre segnalate le risoluzione, TODO:annullare dopo un paio d'ore
-            informationObject.issue = ATMFetcher.formatTweet(hash, tweet.text, subjectIndex);
+            informationObject.issue = true;
             informationObject.match = true;
             informationObject.weight = "2";
             informationObject.date = tweet.created_at;
@@ -218,16 +218,16 @@ ATMFetcher.prototype.classify = function (tweet, hash, subjectIndex) {
         'riprende|riprendono': function () {
             //Situazione risolta, non la invio, modificare nel caso di sistema continuo
             informationObject.match = true;
-            informationObject.issue = ATMFetcher.formatTweet(hash, tweet.text, subjectIndex);
+            informationObject.issue = false;
         },
         'sospesa|circolazione sospesa|sospendono': function () {
-            informationObject.issue = ATMFetcher.formatTweet(hash, tweet.text, subjectIndex);
+            informationObject.issue = true);
             informationObject.match = true;
             informationObject.weight = "3";
             informationObject.date = tweet.created_at;
         },
         'termina': function () {
-            informationObject.issue = ATMFetcher.formatTweet(hash, tweet.text, subjectIndex);
+            informationObject.issue = true;
             informationObject.match = true;
             informationObject.weight = "3";
             informationObject.date = tweet.created_at;
@@ -245,7 +245,8 @@ ATMFetcher.prototype.classify = function (tweet, hash, subjectIndex) {
     return informationObject;
 };
 
-ATMFetcher.formatTweet = function (subject, text, subjectIndex) {
+
+ATMFetcher.stripUnwantedWords = function (text) {
     return subject + text.slice(subjectIndex);
 };
 

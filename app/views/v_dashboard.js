@@ -57,7 +57,7 @@ dashboard.percorso = function (plan) {
         }, [
             m("strong", plan().info),
             dashboard.infoTwitter(plan().twitter),
-        dashboard.twitter(plan().twitter.news)
+            dashboard.twitter(plan().twitter.news)
         ]),
         m("div", [
             m("table", {
@@ -123,20 +123,35 @@ dashboard.infoTwitter = function (tweetObj) {
                 'style': {
                     'color': '#CC0000'
                 }
-            }, "Stato: Critico"),
+            }, "Stato: ✖ Critico"),
+        ]);
+    else if (tweetObj.weight == 2)
+        return m("div", [
+            m('div', {
+                'style': {
+                    'color': '#CE5C00'
+                }
+            }, "Stato: ⧗ Rallentamenti"),
         ]);
     else {
-        return m("div", "Stato: ✔ Non sono stati riscontrati problemi sulle linee");
+        return m("div", {
+            'style': {
+                'color': '#204A87'
+            }
+        }, "Stato: ✔ Non sono stati riscontrati problemi sulle linee");
     }
 };
 
 
 dashboard.twitter = function (tweets) {
-  return  m("div", {
-        'style':{}
+    return m("div", {
+        'style': {
+            'width': '430px',
+            'font-family': 'Arial, Helvetica, sans serif'
+        }
     }, [
         tweets.map(function (tweet) {
-            return tweet;
+            return m('div', tweet);
         })
     ]);
 };
