@@ -137,7 +137,7 @@ dashboard.infoTwitter = function (tweetObj) {
         return m("div", [
             m('div', {
                 'style': {
-                    'color': '#BABDB6'
+                    'color': 'gray'
                 }
             }, "Stato: ❓ Incerto"),
         ]);
