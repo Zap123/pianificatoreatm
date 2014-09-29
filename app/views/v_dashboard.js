@@ -123,7 +123,7 @@ dashboard.infoTwitter = function (tweetObj) {
                 'style': {
                     'color': '#CC0000'
                 }
-            }, "Stato: ✖ Critico"),
+            }, m("a",{'target':'_blank','href':'https://twitter.com/atm_informa'},"Stato"),": ✖ Critico"),
         ]);
     else if (tweetObj.weight == 2)
         return m("div", [
@@ -131,7 +131,7 @@ dashboard.infoTwitter = function (tweetObj) {
                 'style': {
                     'color': '#CE5C00'
                 }
-            }, "Stato: ⧗ Rallentamenti"),
+            }, m("a",{'target':'_blank','href':'https://twitter.com/atm_informa'},"Stato"),": ⧗ Rallentamenti"),
         ]);
      else if (tweetObj.weight == 1)
         return m("div", [
@@ -139,14 +139,14 @@ dashboard.infoTwitter = function (tweetObj) {
                 'style': {
                     'color': 'gray'
                 }
-            }, "Stato: ❓ Incerto"),
+            }, m("a",{'target':'_blank','href':'https://twitter.com/atm_informa'},"Stato"),": ❓ Incerto"),
         ]);
     else {
         return m("div", {
             'style': {
                 'color': '#204A87'
             }
-        }, "Stato: ✔ Non sono stati riscontrati problemi sulle linee");
+        }, m("a",{'target':'_blank','href':'https://twitter.com/atm_informa'},"Stato"),": ✔ Non sono stati riscontrati problemi sulle linee");
     }
 };
 

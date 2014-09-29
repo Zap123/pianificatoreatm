@@ -53,7 +53,10 @@ ATMFetcher.prototype.getRoute = function (callback) {
 ATMFetcher.prototype.printRoute = function (html, mapsImg) {
     var $ = cheerio.load(html),
         hrScope = 0,
-        linee = {nomi:[], direzioni:[]},
+        linee = {
+            nomi: [],
+            direzioni: []
+        },
         routes = {
             mapsImg: mapsImg
         },
@@ -68,7 +71,6 @@ ATMFetcher.prototype.printRoute = function (html, mapsImg) {
         $ = cheerio.load(stoplist);
         $('hr').each(function (i, el) {
             var step = {};
-            console.log(this.linea);
             $(this).nextUntil('hr').each(function (j, el) {
                 elemento = $(this).text();
                 if (elemento.indexOf(":") !== -1) {
@@ -118,7 +120,6 @@ ATMFetcher.prototype.printRoute = function (html, mapsImg) {
 
 
 ATMFetcher.prototype.twitterNews = function (linee, callback) {
-    console.log(linee);
     fs.readFile("./connectors/twitter/cache/atm_informa", function (err, data) {
         if (err) throw err;
         var tweets = JSON.parse(data),
@@ -131,7 +132,9 @@ ATMFetcher.prototype.twitterNews = function (linee, callback) {
                 news: []
             };
         //controllo se per ogni linea ci sono dei tweet e se quest'informazione è di oggi
+        console.log("informazioni valide:");
         console.log(datacur > today);
+        //GiroMilano dà solo il numero della linea e non il mezzo
         while (linee.nomi.length > 0 && cur < tweets.length && datacur > today) {
             //Guardo dentro a un tweet se parla di una linea
             console.log(linee);
@@ -143,7 +146,6 @@ ATMFetcher.prototype.twitterNews = function (linee, callback) {
                 while (!found && hash < hashtags.length) {
                     //Cerco ':' e prendo solo gli hash precedenti perché sono i soggetti
                     //se non trovo il soggetto nel primo ':' controllo negli altri
-                    console.log(linee.nomi[linea] + "_____");
                     var subjectIndex = tweets[cur].text.indexOf(':');
                     var isSubject = false;
                     while (!isSubject && subjectIndex != -1) {
@@ -155,7 +157,11 @@ ATMFetcher.prototype.twitterNews = function (linee, callback) {
                     }
                     if (isSubject) {
                         console.log(hashtags[hash].text + "-" + linee.nomi[linea]);
-                        found = hashtags[hash].text.match(new RegExp(linee.nomi[linea]));
+                        if (!isNaN(linee.nomi[linea]))
+                            found = hashtags[hash].text.match(new RegExp('^(?:[A-Z_a-z]+(' + linee.nomi[linea] + '))$'));
+                        else {
+                            found = hashtags[hash].text.indexOf(linee.nomi[linea]) !== -1;
+                        }
                         if (found) {
                             console.log(tweets[cur].text);
                             classification = this.classify(tweets[cur], hashtags[hash].text, subjectIndex);
@@ -166,7 +172,6 @@ ATMFetcher.prototype.twitterNews = function (linee, callback) {
                                 linee.nomi.splice(linea, 1);
                                 // [x,y] cancellando x => [y] non incremento contatore
                                 linea--;
-                                console.log(linee.nomi);
                                 //Se issue === undefined non invio l'oggetto perché info risolta
                                 if (classification.issue) {
                                     //do un peso alle notizie
@@ -174,7 +179,7 @@ ATMFetcher.prototype.twitterNews = function (linee, callback) {
                                     if (classificationObj.weight < classification.weight)
                                         classificationObj.weight = classification.weight;
                                     if (!alreadyUsedTweet) {
-                                        classificationObj.news.push(tweets[cur].text.replace(/&gt;/g,'>'));
+                                        classificationObj.news.push(tweets[cur].text.replace(/&gt;/g, '>'));
                                         alreadyUsedTweet = true;
                                     }
                                     classificationObj.problem.push(hashtags[hash].text);
@@ -184,9 +189,7 @@ ATMFetcher.prototype.twitterNews = function (linee, callback) {
                     }
                     hash++;
                 }
-                console.log("Fine for nuova linea");
             }
-            console.log("Nuovo tweet");
             cur++;
             if (tweets[cur] !== undefined)
                 datacur = new Date(tweets[cur].created_at);
@@ -201,7 +204,6 @@ ATMFetcher.prototype.classify = function (tweet, hash, subjectIndex) {
     };
 
     //casistica keyword
-    //chiave modifica già gestita da app.web
     rules = {
         'devia|deviano|deviazione': function () {
             informationObject.issue = true;
@@ -210,14 +212,24 @@ ATMFetcher.prototype.classify = function (tweet, hash, subjectIndex) {
             informationObject.date = tweet.created_at;
         },
         'rallentamenti': function () {
-            //Non vengono sempre segnalate le risoluzione, TODO:annullare dopo un paio d'ore
-            informationObject.issue = true;
-            informationObject.match = true;
-            informationObject.weight = "2";
-            informationObject.date = tweet.created_at;
+            //Non vengono sempre segnalate le risoluzione, annullare dopo un paio d'ore
+            if (new Date() - new Date(tweet.created_at) < 7200000) {
+                informationObject.issue = true;
+                informationObject.match = true;
+                informationObject.weight = "2";
+                informationObject.date = tweet.created_at;
+            } else {
+                informationObject.match = true;
+                informationObject.issue = false;
+            }
         },
         'riprende|riprendono': function () {
             //Situazione risolta, non la invio, modificare nel caso di sistema continuo
+            informationObject.match = true;
+            informationObject.issue = false;
+        },
+        'modifica|modificano|modifiche': function () {
+            //chiave modifica già gestita da app.web
             informationObject.match = true;
             informationObject.issue = false;
         },
@@ -242,26 +254,29 @@ ATMFetcher.prototype.classify = function (tweet, hash, subjectIndex) {
         }
     }
 
-    console.log(informationObject.issue + "<-----");
     return informationObject;
 };
 
 
 ATMFetcher.prototype.stripUnwanted = function (text) {
     var words = {
-        'circolazione sospesa':'sospesa',
-        'la circolazione riprende':'riprende',
-        'la circolazione è normale':'riprende',
-        'la circolazione sta riprendendo':'riprende',
-        'riprende il percorso regolare con rallentamenti':'rallentamenti',
-        'bus di collegamento':'sospesa',
-        'utilizzare il':'sospesa',
-        'prosegue la deviazione':'deviazione',
-        'la circolazione viene effettuata con':'sospesa'
+        'la circolazione è sospesa': 'sospesa',
+        'circolazione sospesa': 'sospesa',
+        'la circolazione riprende': 'riprende',
+        'la circolazione è normale': 'riprende',
+        'la circolazione sta riprendendo': 'riprende',
+        'riprende il percorso regolare con rallentamenti': 'rallentamenti',
+        'la circolazione subisce rallentamenti': 'rallentamenti',
+        'bus di collegamento': 'sospesa',
+        'utilizzare il': 'sospesa',
+        'prosegue la deviazione': 'deviazione',
+        'la circolazione viene effettuata con': 'sospesa'
     };
     for (var strip in words) {
         text = text.replace(strip, words[strip]);
+        console.log(text);
     }
+    console.log(text);
     return text;
 };
 
