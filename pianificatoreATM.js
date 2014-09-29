@@ -1,7 +1,11 @@
 var express = require('express'),
     app = express(),
     fetcher = require('./fetchers/atm/atm'),
+    TwitterConnector = require('./connectors/twitter/twitter'),
     bodyParser = require('body-parser');
+
+var twitt = new TwitterConnector("atm_informa");
+twitt.init();
 
 app.use(express.static(__dirname + '/app'));
 app.use(bodyParser.json());
