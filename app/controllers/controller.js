@@ -23,6 +23,7 @@ planner.controller = function () {
                 mezzi: this.mezzi(),
                 percorso: this.tipoPercorso()
             }).then(this.plan).then(this.responseBehaviour);
+        this.dash.setTab("Percorso");
     }.bind(this);
 
     this.responseBehaviour = function (resp) {
