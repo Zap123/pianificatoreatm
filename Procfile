@@ -1,1 +1,1 @@
-web: node pianificatoreatm.js
+web: node ./pianificatoreatm.js
