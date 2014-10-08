@@ -1,7 +1,7 @@
 planner.controller = function () {
     this.tipoPercorso = m.prop(0);
     this.mezzi = m.prop(1);
-    this.plan = m.prop([]);
+    this.plan = m.prop([tweetObj:[]]);
     this.ctrl_routing = new routing.controller();
     this.dash = new dashboard.controller();
 
