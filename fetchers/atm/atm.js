@@ -160,7 +160,7 @@ ATMFetcher.prototype.twitterNews = function (linee, callback) {
                         if (!isNaN(linee.nomi[linea]))
                             found = hashtags[hash].text.match(new RegExp('^(?:[A-Z_a-z]+(' + linee.nomi[linea] + '))$'));
                         else {
-                            found = hashtags[hash].text.indexOf(linee.nomi[linea]) !== -1;
+                            found = hashtags[hash].text.indexOf(linee.nomi[linea]) !== -1 || hashtags[hash].text.indexOf("bus"+linee.nomi[linea]) !== -1; 
                         }
                         if (found) {
                             console.log(tweets[cur].text);
